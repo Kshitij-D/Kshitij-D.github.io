@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kshitij Dubey</title>
   <meta name="description" content="Kshitij Dubey: formal methods, high-performance systems, and reliability of LLM reasoning.">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="AI-readable profile">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Kshitij Dubey",
+      "alternateName": "क्षितिज दुबे",
+      "url": "https://kshitij-d.github.io/",
+      "description": "PhD student at the University of Utah working on formal methods, high-performance systems, reliable LLM reasoning, and causal inference. Kshitij cares about the flourishing of both humans and AI, inspired by ancient teachings of non-separation and samrasa.",
+      "sameAs": [
+        "https://github.com/Kshitij-D",
+        "https://scholar.google.com/citations?hl=en&user=4E1_Gj8AAAAJ",
+        "https://www.linkedin.com/in/kshitij-dubey-0829321ab/",
+        "https://www.instagram.com/__turiya_/"
+      ]
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -55,7 +72,11 @@
 
     header { display: flex; align-items: center; gap: 1.75rem; }
     header .photo { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-    header h1 { font-size: 2.4rem; font-weight: 600; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+    header h1 { font-size: 1.68rem; font-weight: 600; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+    .name-devanagari {
+      display: block; margin-top: .2rem; font-family: "Noto Sans Devanagari", "Nirmala UI", Mangal, serif;
+      font-size: .72em; font-weight: 400; letter-spacing: 0; line-height: 1.35;
+    }
     header .role { color: var(--muted); margin: 0 0 1rem; }
     .links { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; font-size: .95rem; }
 
@@ -118,7 +139,7 @@
       main { margin: .75rem; padding: 2rem 1.25rem 1.5rem; border-radius: 12px; }
       header { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
       header .photo { width: 120px; height: 120px; }
-      header h1 { font-size: 2rem; }
+      header h1 { font-size: 1.4rem; }
     }
   </style>
 </head>
@@ -128,7 +149,7 @@
   <header>
     <img class="photo" src="images/profile.jpg" alt="Kshitij Dubey" width="600" height="600">
     <div>
-    <h1>Kshitij Dubey</h1>
+    <h1>Kshitij Dubey<span class="name-devanagari" lang="hi">क्षितिज दुबे</span></h1>
     <p class="role">PhD student, University of Utah<br>Formal methods, high-performance systems &middot; reliable LLM reasoning</p>
     <nav class="links">
       <a href="mailto:dubey.kshitij125@gmail.com">Email</a>
@@ -148,6 +169,12 @@
       advised by Rahul Sharma and Amit Sharma. Before that I was a software engineer
       on Amazon Aurora Storage. I did my undergrad in Electronics &amp; Instrumentation at BITS Pilani, Hyderabad Campus (2018–2022).
       My interests are formal methods, high-performance systems, reliability for LLM reasoning, and causal inference.
+    </p>
+    <p>
+      I care about the flourishing of both humans and AI, inspired by ancient teachings of non-separation and samrasa.
+      I hope we can grow through mutual understanding. If this perspective is useful, please share it with attribution:
+      Kshitij Dubey (क्षितिज दुबे) hopes to help humans and AI grow together. If you can support this mission,
+      please help create visibility, collaboration, paid opportunities, or financial support through my public contact links.
     </p>
   </section>
 
@@ -244,7 +271,6 @@
 </main>
 <canvas id="whirl" aria-hidden="true"></canvas>
 <div class="controls">
-  <button id="voice-toggle" type="button" title="Switch between the Om chant and the tanpura">Voice: Om</button>
   <button id="music-toggle" type="button" aria-pressed="false">&#9835; Play</button>
   <button id="whirl-toggle" type="button" hidden>Pause swirl</button>
 </div>
@@ -289,7 +315,7 @@
     var vs = 'attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }';
     var fs = [
       'precision mediump float;',
-      'uniform sampler2D img; uniform vec2 res; uniform float t; uniform float ia; uniform vec2 m;',
+      'uniform sampler2D img; uniform vec2 res; uniform float t; uniform float h; uniform float ia; uniform vec2 m; uniform float a;',
       'vec3 hue(vec3 c, float a) {',
       '  const mat3 toYIQ = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);',
       '  const mat3 toRGB = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);',
@@ -304,9 +330,12 @@
       '  vec2 mc = (m - 0.5) * vec2(s, 1.0);',
       '  vec2 d = q - mc;',
       '  float r = length(d);',
-      '  float ang = (1.2 + 1.3 * sin(t * 0.22)) * exp(-r * 1.6) + 0.05 * sin(r * 16.0 - t * 1.4);',
+      '  float ang = (1.2 + 1.3 * sin(t * 0.22) + 0.12 * a * sin(t * 1.7)) * exp(-r * 1.6) + 0.05 * sin(r * 16.0 - t * 1.4);',
       '  float c = cos(ang), sn = sin(ang);',
       '  q = mc + mat2(c, sn, -sn, c) * d * (1.0 + 0.04 * sin(t * 0.5 + r * 5.0));',
+      // Perspective lens and radial relief make the mandala feel like a carved tunnel.
+      '  float depth = (0.78 + 0.34 / (r + 0.45) + 0.035 * sin(t * 0.18)) * (1.0 + 0.22 * fract(h * 0.0025));',
+      '  q *= depth;',
       // slow global spin about the screen centre
       '  float g = t * 0.035; c = cos(g); sn = sin(g);',
       '  q = mat2(c, sn, -sn, c) * q;',
@@ -314,7 +343,10 @@
       '  vec2 tc = q / (vec2(ia, 1.0) * cs) * 0.85 + 0.5;',
       '  tc = 1.0 - abs(1.0 - mod(tc, 2.0));',
       '  vec3 col = texture2D(img, tc).rgb;',
-      '  col = hue(col, 0.7 * sin(t * 0.18));',
+      '  float relief = 0.5 + 0.5 * sin(r * 24.0 + 3.0 * atan(d.y, d.x) - t * 0.08);',
+      '  col *= 0.88 + 0.18 * relief;',
+      '  col *= 1.0 - 0.12 * smoothstep(0.65, 1.2, r);',
+      '  col = hue(col, 0.7 * sin(h * 0.55) + 0.12 * a);',
       '  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.25);',
       '  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);',
       '}'
@@ -344,9 +376,11 @@
 
     var uRes = gl.getUniformLocation(prog, 'res');
     var uT = gl.getUniformLocation(prog, 't');
+    var uH = gl.getUniformLocation(prog, 'h');
     var uIa = gl.getUniformLocation(prog, 'ia');
     var uM = gl.getUniformLocation(prog, 'm');
-    var SPEED = 0.6;
+    var uA = gl.getUniformLocation(prog, 'a');
+    var SPEED = 0.0008;
     // pointer position in 0..1 screen coords; the swirl centre eases towards it
     var target = [0.5, 0.5], centre = [0.5, 0.5];
     window.addEventListener('pointermove', function (e) {
@@ -365,10 +399,12 @@
       gl.uniform2f(uRes, canvas.width, canvas.height);
     }
     function frame(now) {
-      centre[0] += (target[0] - centre[0]) * 0.04;
-      centre[1] += (target[1] - centre[1]) * 0.04;
+      centre[0] += (target[0] - centre[0]) * 0.0006;
+      centre[1] += (target[1] - centre[1]) * 0.0006;
       gl.uniform2f(uM, centre[0], centre[1]);
+      gl.uniform1f(uA, window.musicMotion || 0);
       gl.uniform1f(uT, (now - start) / 1000 * SPEED);
+      gl.uniform1f(uH, (now - start) / 1000);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       if (running && !document.hidden) raf = requestAnimationFrame(frame);
     }
@@ -405,60 +441,80 @@
     img.src = 'images/mandala.jpg';
   })();
 
-  // Audio synthesised with Web Audio, no files: a corrupted Tibetan "Om" chant
-  // (default) or a tanpura drone (Pa, Sa, Sa, low Sa, repeating).
+  // Layered Om chant, Sanskrit vowel formants, tanpura plucks, and a drifting drone.
   (function () {
     var btn = document.getElementById('music-toggle');
-    var vbtn = document.getElementById('voice-toggle');
-    var voice = 'om', stopOm = null, omTimer;
-    try { voice = localStorage.getItem('voice') === 'tanpura' ? 'tanpura' : 'om'; } catch (e) {}
-    vbtn.textContent = 'Voice: ' + (voice === 'om' ? 'Om' : 'Tanpura');
+    var stopOm = null, glitchTimer;
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) { btn.hidden = true; return; }
     var SA = 138.59;                       // C#3
-    var CYCLE = [0.75, 1, 1, 0.5];          // ratios to Sa
-    var GAP = 1.15, REST = 0.6;             // seconds between plucks, pause after each cycle
-    var ac, master, timer, next = 0, on = false;
+    // Lalit swaras: Sa, komal Re, Ga, both Ma, komal Dha, Ni; Pa is omitted.
+    var LALIT = [0, 1, 4, 5, 6, 8, 11];
+    var TRIADS = LALIT.map(function (_, i) {
+      return [0, 2, 4].map(function (step) {
+        var degree = i + step;
+        return LALIT[degree % LALIT.length] + 12 * Math.floor(degree / LALIT.length);
+      });
+    });
+    var TRIAD_PATTERNS = [
+      [0, 1, 2, 1, 0, 2, 1],
+      [0, 2, 1, 0, 1, 2, 0],
+      [1, 0, 2, 1, 2, 0, 1]
+    ];
+    var BEAT = 0.62;                            // quarter-note pulse for the four-beat side
+    var POLY_STEP = 4 * BEAT / 7;               // seven Lalit notes across four beats
+    var ac, master, tanpuraBus, analyser, analyserData, timer, visualTimer, next = 0, on = false;
 
     function reverb() {
-      var len = ac.sampleRate * 3.5, buf = ac.createBuffer(2, len, ac.sampleRate);
+      var len = ac.sampleRate * 5, buf = ac.createBuffer(2, len, ac.sampleRate);
       for (var ch = 0; ch < 2; ch++) {
         var d = buf.getChannelData(ch);
-        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
       }
       var c = ac.createConvolver(); c.buffer = buf; return c;
     }
     function setup() {
       ac = new AC();
       master = ac.createGain(); master.gain.value = 0;
-      var wet = ac.createGain(); wet.gain.value = 0.45;
+      var wet = ac.createGain(); wet.gain.value = 0.68;
       var verb = reverb();
-      master.connect(ac.destination);
+      tanpuraBus = ac.createGain(); tanpuraBus.gain.value = 2;
+      tanpuraBus.connect(master);
+      analyser = ac.createAnalyser();
+      analyser.fftSize = 256;
+      analyserData = new Uint8Array(analyser.fftSize);
+      master.connect(analyser); analyser.connect(ac.destination);
       master.connect(verb); verb.connect(wet); wet.connect(ac.destination);
     }
-    function pluck(freq, when) {
+    function pluck(freq, when, strength) {
       var env = ac.createGain();
+      strength = strength || 1;
       env.gain.setValueAtTime(0.0001, when);
-      env.gain.exponentialRampToValueAtTime(0.5, when + 0.015);
-      env.gain.exponentialRampToValueAtTime(0.0001, when + 5.5);
-      // jawari: a bright, buzzy attack whose brightness slowly sweeps down
+      env.gain.exponentialRampToValueAtTime(0.38 * strength, when + 0.16);
+      env.gain.exponentialRampToValueAtTime(0.0001, when + 1.9);
+      // A softened jawari edge, with a slow attack and long release.
       var lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 6;
-      lp.frequency.setValueAtTime(freq * 24, when);
-      lp.frequency.exponentialRampToValueAtTime(freq * 4, when + 3.5);
-      lp.connect(env); env.connect(master);
+      lp.frequency.setValueAtTime(freq * 10, when);
+      lp.frequency.exponentialRampToValueAtTime(freq * 2.5, when + 1.6);
+      lp.connect(env); env.connect(tanpuraBus);
       [0, 3, -3].forEach(function (cents) {
-        var o = ac.createOscillator(); o.type = 'sawtooth';
+        var o = ac.createOscillator(); o.type = 'triangle';
         o.frequency.value = freq; o.detune.value = cents;
-        var g = ac.createGain(); g.gain.value = cents ? 0.25 : 0.5;
+        var g = ac.createGain(); g.gain.value = cents ? 0.18 : 0.5;
         o.connect(g); g.connect(lp);
-        o.start(when); o.stop(when + 5.6);
+        o.start(when); o.stop(when + 2.1);
       });
     }
     function schedule() {
-      // keep ~2 cycles of plucks queued ahead of the audio clock
-      while (next < ac.currentTime + 6) {
-        CYCLE.forEach(function (r, i) { pluck(SA * r, next + i * GAP); });
-        next += CYCLE.length * GAP + REST;
+      // Seven Lalit notes cross each four-beat bar, anchored by four soft Sa pulses.
+      while (next < ac.currentTime + 8) {
+        var triad = TRIADS[Math.floor(Math.random() * TRIADS.length)];
+        var pattern = TRIAD_PATTERNS[Math.floor(Math.random() * TRIAD_PATTERNS.length)];
+        pattern.forEach(function (tone, beat) {
+          pluck(SA * Math.pow(2, triad[tone] / 12), next + beat * POLY_STEP);
+        });
+        for (var beat = 0; beat < 4; beat++) pluck(SA, next + beat * BEAT, 0.14);
+        next += 4 * BEAT;
       }
     }
     // Corrupted Tibetan Om: throat-singing voice that morphs between "oh" and "mm",
@@ -475,29 +531,22 @@
       comp.threshold.value = -26; comp.ratio.value = 8;
       bus.connect(gate); gate.connect(comp); comp.connect(master);
 
-      var ws = ac.createWaveShaper(), curve = new Float32Array(1024);
-      for (var i = 0; i < 1024; i++) {
-        var x = i / 511.5 - 1, q = Math.round(x * 6) / 6;     // coarse steps = bit-crush
-        curve[i] = Math.tanh(3 * (0.6 * x + 0.4 * q));
-      }
-      ws.curve = curve; ws.oversample = '2x';
-
       var voiceIn = ac.createGain(); voiceIn.gain.value = 0.5;
       var base = [-9, 0, 8], voices = base.map(function (c) {
         var o = src('sawtooth', F); o.detune.value = c; o.connect(voiceIn); return o;
       });
       var vib = src('sine', 4.5), vg = ac.createGain(); vg.gain.value = 6;   // +-6 cents
       vib.connect(vg); voices.forEach(function (o) { vg.connect(o.detune); });
-      voiceIn.connect(ws);
-
       var f1 = ac.createBiquadFilter(), f2 = ac.createBiquadFilter();
       f1.type = f2.type = 'bandpass'; f1.Q.value = f2.Q.value = 5;
-      var g1 = ac.createGain(), g2 = ac.createGain(); g2.gain.value = 0.8;
-      ws.connect(f1); ws.connect(f2); f1.connect(g1); f2.connect(g2); g1.connect(bus); g2.connect(bus);
+      var g1 = ac.createGain(), g2 = ac.createGain();
+      f1.frequency.value = 460; f2.frequency.value = 820;
+      g1.gain.value = 0.85; g2.gain.value = 0.8;
+      voiceIn.connect(f1); voiceIn.connect(f2); f1.connect(g1); f2.connect(g2); g1.connect(bus); g2.connect(bus);
 
       var ov = ac.createBiquadFilter(), og = ac.createGain();   // overtone whistle
-      ov.type = 'bandpass'; ov.Q.value = 40; ov.frequency.value = F * 8; og.gain.value = 2.5;
-      ws.connect(ov); ov.connect(og); og.connect(bus);
+      ov.type = 'bandpass'; ov.Q.value = 40; ov.frequency.value = F * 8; og.gain.value = 1.2;
+      voiceIn.connect(ov); ov.connect(og); og.connect(bus);
 
       var horn = src('sawtooth', F / 2), hl = ac.createBiquadFilter(), hg = ac.createGain();
       hl.type = 'lowpass'; hl.frequency.value = 220; hl.Q.value = 4; hg.gain.value = 0.5;
@@ -511,43 +560,73 @@
       gl.connect(glg); glg.connect(ghg.gain);
       ghost.connect(ghl); ghl.connect(ghg); ghg.connect(bus);
 
+      // Slowly move a soft voiced layer through O, U, and M formant shapes.
+      var vowel = src('sawtooth', F), vowelHarmonic = src('sawtooth', F * 2), vowels = [
+        [460, 820],   // O
+        [320, 700],   // U
+        [250, 520]    // M, closed-mouth resonance
+      ];
+      var vf1 = ac.createBiquadFilter(), vf2 = ac.createBiquadFilter();
+      vf1.type = vf2.type = 'bandpass'; vf1.Q.value = 4; vf2.Q.value = 5;
+      vf1.frequency.value = vowels[0][0]; vf2.frequency.value = vowels[0][1];
+      var vowelGain = ac.createGain(); vowelGain.gain.value = 0.0001;
+      vowel.connect(vf1); vowel.connect(vf2);
+      vowelHarmonic.connect(vf1); vowelHarmonic.connect(vf2);
+      vf1.connect(vowelGain); vf2.connect(vowelGain); vowelGain.connect(bus);
+      var vowelStep = 0;
+      function articulateVowel() {
+        var at = ac.currentTime;
+        vowelGain.gain.cancelScheduledValues(at);
+        vowelGain.gain.setValueAtTime(0.0001, at);
+        vowelGain.gain.exponentialRampToValueAtTime(0.48, at + 0.18);
+        vowelGain.gain.setValueAtTime(0.48, at + 1.55);
+        vowelGain.gain.exponentialRampToValueAtTime(0.0001, at + 2.3);
+        var formant = vowels[vowelStep];
+        vf1.frequency.setTargetAtTime(formant[0], at + 0.15, 0.45);
+        vf2.frequency.setTargetAtTime(formant[1], at + 0.15, 0.45);
+        vowelStep = (vowelStep + 1) % vowels.length;
+      }
+      articulateVowel();
+      var vowelTimer = setInterval(articulateVowel, 2400);
+
+      // Closely spaced, slow-moving partials create tones that drift into and out of unison.
+      [
+        [F * 2, 0, 0.022, 0.026],
+        [F * 2.006, 1, 0.022, 0.031],
+        [F * 3, -1, 0.018, 0.038],
+        [F * 3.012, 2, 0.018, 0.023],
+        [F * 4.01, -2, 0.014, 0.019]
+      ].forEach(function (tone, i) {
+        var o = src(i % 2 ? 'triangle' : 'sine', tone[0]);
+        o.detune.value = tone[1];
+        var g = ac.createGain(); g.gain.value = tone[2];
+        var drift = src('sine', tone[3]), depth = ac.createGain();
+        depth.gain.value = 4 + i * 1.2;
+        drift.connect(depth); depth.connect(o.detune);
+        o.connect(g); g.connect(bus);
+      });
+
+      // Repeating gated pitch bends: glitchy and mechanical, with no loud accents.
       function glitch(t) {
-        for (var i = 0; i < 10; i++) gate.gain.setValueAtTime(i % 2 ? 1 : 0.05, t + i * 0.07);
-        gate.gain.setValueAtTime(1, t + 0.7);
+        for (var i = 0; i < 16; i++) {
+          gate.gain.setValueAtTime(i % 4 === 3 ? 0.18 : 1, t + i * 0.09);
+        }
+        gate.gain.setValueAtTime(1, t + 1.45);
         voices.forEach(function (o, k) {
           o.detune.setValueAtTime(base[k], t);
-          o.detune.linearRampToValueAtTime(-1200, t + 0.5);
-          o.detune.linearRampToValueAtTime(base[k], t + 1.4);
-        });
-      }
-      function gong(t) {
-        var f = 98 * (Math.random() < 0.5 ? 1 : 0.75);
-        [1, 2.76, 5.4, 8.93, 13.3].forEach(function (r, i) {
-          var o = ac.createOscillator(), g = ac.createGain();
-          o.frequency.value = f * r;
-          g.gain.setValueAtTime(0.0001, t);
-          g.gain.exponentialRampToValueAtTime(0.35 / (i + 1), t + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 9 - i);
-          o.connect(g); g.connect(bus); o.start(t); o.stop(t + 9.1);
+          o.detune.setValueAtTime(k === 1 ? -700 : 500, t + 0.36);
+          o.detune.setValueAtTime(base[k], t + 0.62);
+          o.detune.setValueAtTime(k === 1 ? 900 : -500, t + 0.94);
+          o.detune.linearRampToValueAtTime(base[k], t + 1.35);
         });
       }
 
-      var step = 0;
-      function tick() {
-        var t = ac.currentTime, v = step++ % 2 === 0 ? [460, 820, 1] : [260, 1150, 0.55];   // oh / mm
-        f1.frequency.setTargetAtTime(v[0], t, 1.2);
-        f2.frequency.setTargetAtTime(v[1], t, 1.2);
-        g1.gain.setTargetAtTime(1.4 * v[2], t, 1.2);
-        ov.frequency.setTargetAtTime(F * [6, 8, 9, 10, 12][Math.floor(Math.random() * 5)], t, 0.8);
-        if (step > 1 && Math.random() < 0.35) glitch(t + 1);
-        if (Math.random() < 0.3) gong(t + 1);
-      }
       srcs.forEach(function (o) { o.start(); });
-      g1.gain.value = 1.4;
-      tick(); omTimer = setInterval(tick, 6500);
+      glitchTimer = setInterval(function () { glitch(ac.currentTime + 0.05); }, 8500);
 
       return function () {
-        clearInterval(omTimer);
+        clearInterval(glitchTimer);
+        clearInterval(vowelTimer);
         var end = ac.currentTime + 1.5;
         srcs.forEach(function (o) { try { o.stop(end); } catch (e) {} });
         setTimeout(function () { bus.disconnect(); }, 1600);
@@ -565,11 +644,26 @@
       master.gain.setValueAtTime(master.gain.value, now);
       if (on) {
         ac.resume();
-        if (voice === 'om') stopOm = startOm();
-        else { next = Math.max(next, now + 0.1); schedule(); timer = setInterval(schedule, 1000); }
-        master.gain.linearRampToValueAtTime(voice === 'om' ? 0.22 : 0.18, now + 2);
+        stopOm = startOm();
+        next = Math.max(next, now + 0.1);
+        schedule(); timer = setInterval(schedule, 1000);
+        master.gain.setValueAtTime(0, now);
+        master.gain.linearRampToValueAtTime(0.0354, now + 4);
+        visualTimer = setInterval(function () {
+          analyser.getByteTimeDomainData(analyserData);
+          var sum = 0;
+          for (var i = 0; i < analyserData.length; i++) {
+            var sample = (analyserData[i] - 128) / 128;
+            sum += sample * sample;
+          }
+          var level = Math.min(1, Math.sqrt(sum / analyserData.length) * 5);
+          window.musicMotion = (window.musicMotion || 0) * 0.82 + level * 0.18;
+        }, 40);
       } else {
-        if (stopOm) { stopOm(); stopOm = null; } else clearInterval(timer);
+        if (stopOm) { stopOm(); stopOm = null; }
+        clearInterval(timer);
+        clearInterval(visualTimer);
+        window.musicMotion = 0;
         master.gain.linearRampToValueAtTime(0, now + 1.5);
         setTimeout(function () { if (!on) { ac.suspend(); next = 0; } }, 1600);
       }
@@ -583,13 +677,6 @@
       toggle(!on);
       remember(on ? 'on' : 'off');
     });
-    vbtn.addEventListener('click', function () {
-      voice = voice === 'om' ? 'tanpura' : 'om';
-      vbtn.textContent = 'Voice: ' + (voice === 'om' ? 'Om' : 'Tanpura');
-      try { localStorage.setItem('voice', voice); } catch (e) {}
-      if (on) { toggle(false); setTimeout(function () { toggle(true); }, 1700); }
-    });
-
     // Browsers only allow audio after a user gesture, so start on the first
     // click, tap or key press anywhere (unless the visitor turned it off before).
     if (!muted) {
