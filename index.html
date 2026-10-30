@@ -4,17 +4,607 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kshitij Dubey</title>
+  <meta name="description" content="Kshitij Dubey: formal methods, high-performance systems, and reliability of LLM reasoning.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; line-height: 1.6; }
-    header, footer { text-align: center; }
-    nav a { margin: 0 0.5rem; text-decoration: none; color: #0366d6; }
+    :root {
+      --bg: #fcfcfa;
+      --fg: #1c1c1a;
+      --muted: #66655f;
+      --rule: #e4e2dc;
+      --accent: #1f5f8b;
+      --tag-bg: #eef3f7;
+      --card: rgba(252, 252, 250, .93);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141413;
+        --fg: #e8e6e1;
+        --muted: #9a988f;
+        --rule: #2c2b28;
+        --accent: #7cb4dc;
+        --tag-bg: #1d2a33;
+        --card: rgba(20, 20, 19, .9);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    /* Full-color mandala ceiling, fixed behind a translucent content card */
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: url("images/mandala.jpg") center / cover no-repeat;
+    }
+    main {
+      max-width: 820px; margin: 3rem auto; padding: 3rem 2.5rem 2rem; position: relative;
+      background: var(--card); border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .sans, h2, .meta, .links, .tag, footer { font-family: Inter, system-ui, sans-serif; }
+
+    header { display: flex; align-items: center; gap: 1.75rem; }
+    header .photo { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    header h1 { font-size: 2.4rem; font-weight: 600; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+    header .role { color: var(--muted); margin: 0 0 1rem; }
+    .links { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; font-size: .95rem; }
+
+    section { margin-top: 2.75rem; }
+    h2 {
+      font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin: 0 0 1rem; padding-bottom: .4rem; border-bottom: 1px solid var(--rule);
+    }
+
+    .pub { margin-bottom: 1rem; }
+    .pub .title { font-weight: 600; }
+    .meta { font-size: .85rem; color: var(--muted); }
+    .tag {
+      display: inline-block; font-size: .72rem; font-weight: 500; padding: .05rem .45rem;
+      border-radius: 4px; background: var(--tag-bg); color: var(--accent); margin-left: .35rem;
+      vertical-align: 2px;
+    }
+
+    .job { margin-bottom: 1.75rem; }
+    .job-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0 1rem; }
+    .job-head .org { font-weight: 600; }
+    .job .pos { font-style: italic; }
+    details.job { margin-bottom: 0; border-bottom: 1px solid var(--rule); }
+    details.job summary {
+      list-style: none; cursor: pointer; position: relative;
+      padding: .75rem 1.75rem .75rem 0;
+    }
+    details.job summary::-webkit-details-marker { display: none; }
+    details.job summary::after {
+      content: "+"; position: absolute; right: .25rem; top: .7rem;
+      font-family: Inter, system-ui, sans-serif; font-size: 1.1rem; color: var(--muted);
+    }
+    details.job[open] summary::after { content: "\2212"; }
+    details.job summary:hover .org { color: var(--accent); }
+    details.job summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    details.job ul { margin-bottom: 1rem; }
+    .expand-all {
+      font-family: Inter, system-ui, sans-serif; font-size: .8rem; background: none; border: 0;
+      color: var(--accent); cursor: pointer; padding: 0; float: right;
+      text-transform: none; letter-spacing: normal; font-weight: 500;
+    }
+    ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+    li { margin-bottom: .3rem; }
+
+
+    footer { margin-top: 3.5rem; font-size: .8rem; color: var(--muted); }
+    .controls { position: fixed; right: 1rem; bottom: 1rem; display: flex; gap: .5rem; z-index: 10; }
+    .controls button {
+      font-family: Inter, system-ui, sans-serif; font-size: .8rem; font-weight: 500; color: var(--fg);
+      background: var(--card); border: 1px solid var(--rule); border-radius: 999px;
+      padding: .45rem .9rem; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    }
+    .controls button:hover { color: var(--accent); }
+    .controls button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+    #whirl { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+    @media (max-width: 560px) {
+      body { font-size: 17px; }
+      main { margin: .75rem; padding: 2rem 1.25rem 1.5rem; border-radius: 12px; }
+      header { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+      header .photo { width: 120px; height: 120px; }
+      header h1 { font-size: 2rem; }
+    }
   </style>
 </head>
 <body>
+<main>
 
-<h1>Coming Soon....</h1>
-<a href="https://www.linkedin.com/in/kshitij-dubey-0829321ab/">Find me here!</a>
+  <header>
+    <img class="photo" src="images/profile.jpg" alt="Kshitij Dubey" width="600" height="600">
+    <div>
+    <h1>Kshitij Dubey</h1>
+    <p class="role">PhD student, University of Utah<br>Formal methods, high-performance systems &middot; reliable LLM reasoning</p>
+    <nav class="links">
+      <a href="mailto:dubey.kshitij125@gmail.com">Email</a>
+      <a href="https://scholar.google.com/citations?hl=en&amp;user=4E1_Gj8AAAAJ">Google Scholar</a>
+      <a href="https://www.linkedin.com/in/kshitij-dubey-0829321ab/">LinkedIn</a>
+      <a href="https://github.com/Kshitij-D">GitHub</a>
+      <a href="https://www.instagram.com/__turiya_/">Instagram</a>
+    </nav>
+    </div>
+  </header>
 
+  <section id="about">
+    <h2>About</h2>
+    <p>
+      I am a PhD student at the <a href="https://www.utah.edu/">University of Utah</a>, where I started in 2026.
+      Before that I was a Research Fellow at <a href="https://www.microsoft.com/en-us/research/lab/microsoft-research-india/">Microsoft Research India</a>,
+      advised by Rahul Sharma and Amit Sharma. Before that I was a software engineer
+      on Amazon Aurora Storage. I did my undergrad in Electronics &amp; Instrumentation at BITS Pilani, Hyderabad Campus (2018–2022).
+      My interests are formal methods, high-performance systems, reliability for LLM reasoning, and causal inference.
+    </p>
+  </section>
+
+  <section id="publications">
+    <h2>Publications</h2>
+    <div class="pub">
+      <div class="title">Equivalence Checking of ML GPU Kernels</div>
+      <div class="meta">OOPSLA 2026 <span class="tag">co-first author</span></div>
+    </div>
+    <div class="pub">
+      <div class="title">RE-IMAGINE: Symbolic Benchmark Synthesis for Reasoning Evaluation</div>
+      <div class="meta">ICML 2025 <span class="tag">co-first author</span></div>
+    </div>
+    <div class="pub">
+      <div class="title">DeDuCE: Deductive Consistency for Windowed, Step-wise Reasoning</div>
+      <div class="meta">ICLR 2025 Workshop <span class="tag">co-first author</span></div>
+    </div>
+  </section>
+
+  <section id="experience">
+    <h2>Experience <button class="expand-all" type="button">Expand all</button></h2>
+
+    <details class="job">
+      <summary>
+      <div class="job-head">
+        <span class="org">Microsoft Research India</span>
+        <span class="meta">Aug 2024 – Jun 2026 &middot; Bengaluru</span>
+      </div>
+      <div class="pos">Research Fellow, advised by Rahul Sharma and Amit Sharma</div>
+      </summary>
+      <ul>
+        <li>PTX-level equivalence checking for ML kernels: symbolic functional equivalence over reals, schedule-independent sync-safety, warp barriers and Tensor Cores; hardware profiling and simulation.</li>
+        <li>RE-IMAGINE: symbolic rewrites and program mutations projected to natural language, evaluating models at Observation, Mutation and Imagination levels for process-faithful reasoning.</li>
+        <li>DeDuCE: windowed, proof-style checks of step-wise deductive consistency that expose coherence decay hidden by final-answer accuracy.</li>
+        <li>Built an agentic system for memory-corruption discovery in binaries that matched or beat DeepMind's Naptime architecture on Meta's CyberSecEval.</li>
+        <li>Built benchmarks measuring LM performance loss across quantization frameworks at fixed total bit-width, and benchmarks quantifying compositional ability of LMs.</li>
+      </ul>
+    </details>
+
+    <details class="job">
+      <summary>
+      <div class="job-head">
+        <span class="org">Stealth Startup</span>
+        <span class="meta">May 2024 – Jul 2024 &middot; Bengaluru</span>
+      </div>
+      <div class="pos">Member of Technical Staff</div>
+      </summary>
+      <ul>
+        <li>Extended Go Protobuf codegen to statically type-check Neo4j graph constructs.</li>
+        <li>Designed GraphQL APIs and optimized Cypher queries for production workloads.</li>
+      </ul>
+    </details>
+
+    <details class="job">
+      <summary>
+      <div class="job-head">
+        <span class="org">Amazon Aurora Storage</span>
+        <span class="meta">Jul 2022 – Apr 2024 &middot; Bengaluru</span>
+      </div>
+      <div class="pos">Software Development Engineer</div>
+      </summary>
+      <ul>
+        <li>Ported storage workloads to AArch64, improving price/performance with a projected $20M/yr in savings.</li>
+        <li>Tuned jemalloc for C++ storage paths, raising CPU utilization within tight memory budgets.</li>
+        <li>Led graph-model-based integration tests for failover and leader promotion, using TLA+ to surface control-plane bugs.</li>
+        <li>Scaled certificate vending to 100k+ instances and automated OS/application patching within SLA.</li>
+      </ul>
+    </details>
+
+    <details class="job">
+      <summary>
+      <div class="job-head">
+        <span class="org">Amazon Prime Video</span>
+        <span class="meta">Feb 2022 – Jun 2022 &middot; Remote</span>
+      </div>
+      <div class="pos">SDE Intern</div>
+      </summary>
+      <ul>
+        <li>Implemented order-status indicators across microservices; led API changes and integration tests.</li>
+        <li>Initiated an invoicing migration with 20% lower storage and 30% lower latency.</li>
+      </ul>
+    </details>
+  </section>
+
+
+
+
+  <footer>
+    Last updated October 2026
+    <span id="visits"></span>
+    &middot; <a href="https://kshitij-d.goatcounter.com">Site stats</a>
+  </footer>
+
+</main>
+<canvas id="whirl" aria-hidden="true"></canvas>
+<div class="controls">
+  <button id="voice-toggle" type="button" title="Switch between the Om chant and the tanpura">Voice: Om</button>
+  <button id="music-toggle" type="button" aria-pressed="false">&#9835; Play</button>
+  <button id="whirl-toggle" type="button" hidden>Pause swirl</button>
+</div>
+<script data-goatcounter="https://kshitij-d.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<script>
+  // Expand / collapse all experience entries
+  (function () {
+    var btn = document.querySelector('.expand-all');
+    var jobs = document.querySelectorAll('#experience details');
+    function sync() {
+      var allOpen = Array.prototype.every.call(jobs, function (d) { return d.open; });
+      btn.textContent = allOpen ? 'Collapse all' : 'Expand all';
+    }
+    btn.addEventListener('click', function () {
+      var open = btn.textContent === 'Expand all';
+      jobs.forEach(function (d) { d.open = open; });
+      sync();
+    });
+    jobs.forEach(function (d) { d.addEventListener('toggle', sync); });
+    sync();
+  })();
+
+  // Total visit count from the public GoatCounter dashboard
+  fetch('https://kshitij-d.goatcounter.com/counter/TOTAL.json')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (j && j.count && j.count !== '0') {
+        document.getElementById('visits').textContent = '· ' + j.count + ' visits';
+      }
+    })
+    .catch(function () {});
+
+  // Psychedelic whirl: swirls the mandala image with a WebGL shader.
+  // Falls back to the static CSS background if WebGL or the image is unavailable.
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var canvas = document.getElementById('whirl');
+    var gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
+    if (!gl) return;
+
+    var vs = 'attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }';
+    var fs = [
+      'precision mediump float;',
+      'uniform sampler2D img; uniform vec2 res; uniform float t; uniform float ia; uniform vec2 m;',
+      'vec3 hue(vec3 c, float a) {',
+      '  const mat3 toYIQ = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);',
+      '  const mat3 toRGB = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);',
+      '  vec3 y = toYIQ * c; float h = atan(y.z, y.y) + a; float ch = length(y.yz);',
+      '  return toRGB * vec3(y.x, ch * cos(h), ch * sin(h));',
+      '}',
+      'void main() {',
+      '  vec2 uv = gl_FragCoord.xy / res; uv.y = 1.0 - uv.y;',
+      '  float s = res.x / res.y;',
+      '  vec2 q = (uv - 0.5) * vec2(s, 1.0);',
+      // twist centred on the (smoothed) pointer, winding and unwinding, with ripples
+      '  vec2 mc = (m - 0.5) * vec2(s, 1.0);',
+      '  vec2 d = q - mc;',
+      '  float r = length(d);',
+      '  float ang = (1.2 + 1.3 * sin(t * 0.22)) * exp(-r * 1.6) + 0.05 * sin(r * 16.0 - t * 1.4);',
+      '  float c = cos(ang), sn = sin(ang);',
+      '  q = mc + mat2(c, sn, -sn, c) * d * (1.0 + 0.04 * sin(t * 0.5 + r * 5.0));',
+      // slow global spin about the screen centre
+      '  float g = t * 0.035; c = cos(g); sn = sin(g);',
+      '  q = mat2(c, sn, -sn, c) * q;',
+      '  float cs = max(s / ia, 1.0);',
+      '  vec2 tc = q / (vec2(ia, 1.0) * cs) * 0.85 + 0.5;',
+      '  tc = 1.0 - abs(1.0 - mod(tc, 2.0));',
+      '  vec3 col = texture2D(img, tc).rgb;',
+      '  col = hue(col, 0.7 * sin(t * 0.18));',
+      '  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.25);',
+      '  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);',
+      '}'
+    ].join('\n');
+
+    function shader(type, src) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, src); gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+      return sh;
+    }
+    var prog;
+    try {
+      prog = gl.createProgram();
+      gl.attachShader(prog, shader(gl.VERTEX_SHADER, vs));
+      gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    } catch (e) { return; }
+    gl.useProgram(prog);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    var uRes = gl.getUniformLocation(prog, 'res');
+    var uT = gl.getUniformLocation(prog, 't');
+    var uIa = gl.getUniformLocation(prog, 'ia');
+    var uM = gl.getUniformLocation(prog, 'm');
+    var SPEED = 0.6;
+    // pointer position in 0..1 screen coords; the swirl centre eases towards it
+    var target = [0.5, 0.5], centre = [0.5, 0.5];
+    window.addEventListener('pointermove', function (e) {
+      target = [e.clientX / window.innerWidth, e.clientY / window.innerHeight];
+    }, { passive: true });
+
+    var running = true, raf = 0, start = performance.now(), paused = 0;
+    var btn = document.getElementById('whirl-toggle');
+    try { running = localStorage.getItem('whirl') !== 'off'; } catch (e) {}
+
+    function resize() {
+      var scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.75;
+      canvas.width = Math.round(window.innerWidth * scale);
+      canvas.height = Math.round(window.innerHeight * scale);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+    }
+    function frame(now) {
+      centre[0] += (target[0] - centre[0]) * 0.04;
+      centre[1] += (target[1] - centre[1]) * 0.04;
+      gl.uniform2f(uM, centre[0], centre[1]);
+      gl.uniform1f(uT, (now - start) / 1000 * SPEED);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      if (running && !document.hidden) raf = requestAnimationFrame(frame);
+    }
+    function play() { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+    function setRunning(on) {
+      if (on && !running) start += performance.now() - paused;
+      if (!on) paused = performance.now();
+      running = on;
+      btn.textContent = on ? 'Pause swirl' : 'Play swirl';
+      try { localStorage.setItem('whirl', on ? 'on' : 'off'); } catch (e) {}
+      if (on) play();
+    }
+
+    var img = new Image();
+    img.onload = function () {
+      gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      try {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+      } catch (e) { return; }  // e.g. blocked when opened via file://
+      gl.uniform1f(uIa, img.width / img.height);
+      resize();
+      window.addEventListener('resize', resize);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden && running) play(); });
+      btn.hidden = false;
+      btn.addEventListener('click', function () { setRunning(!running); });
+      paused = performance.now();
+      setRunning(running);
+      if (!running) frame(paused);
+    };
+    img.src = 'images/mandala.jpg';
+  })();
+
+  // Audio synthesised with Web Audio, no files: a corrupted Tibetan "Om" chant
+  // (default) or a tanpura drone (Pa, Sa, Sa, low Sa, repeating).
+  (function () {
+    var btn = document.getElementById('music-toggle');
+    var vbtn = document.getElementById('voice-toggle');
+    var voice = 'om', stopOm = null, omTimer;
+    try { voice = localStorage.getItem('voice') === 'tanpura' ? 'tanpura' : 'om'; } catch (e) {}
+    vbtn.textContent = 'Voice: ' + (voice === 'om' ? 'Om' : 'Tanpura');
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { btn.hidden = true; return; }
+    var SA = 138.59;                       // C#3
+    var CYCLE = [0.75, 1, 1, 0.5];          // ratios to Sa
+    var GAP = 1.15, REST = 0.6;             // seconds between plucks, pause after each cycle
+    var ac, master, timer, next = 0, on = false;
+
+    function reverb() {
+      var len = ac.sampleRate * 3.5, buf = ac.createBuffer(2, len, ac.sampleRate);
+      for (var ch = 0; ch < 2; ch++) {
+        var d = buf.getChannelData(ch);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      }
+      var c = ac.createConvolver(); c.buffer = buf; return c;
+    }
+    function setup() {
+      ac = new AC();
+      master = ac.createGain(); master.gain.value = 0;
+      var wet = ac.createGain(); wet.gain.value = 0.45;
+      var verb = reverb();
+      master.connect(ac.destination);
+      master.connect(verb); verb.connect(wet); wet.connect(ac.destination);
+    }
+    function pluck(freq, when) {
+      var env = ac.createGain();
+      env.gain.setValueAtTime(0.0001, when);
+      env.gain.exponentialRampToValueAtTime(0.5, when + 0.015);
+      env.gain.exponentialRampToValueAtTime(0.0001, when + 5.5);
+      // jawari: a bright, buzzy attack whose brightness slowly sweeps down
+      var lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 6;
+      lp.frequency.setValueAtTime(freq * 24, when);
+      lp.frequency.exponentialRampToValueAtTime(freq * 4, when + 3.5);
+      lp.connect(env); env.connect(master);
+      [0, 3, -3].forEach(function (cents) {
+        var o = ac.createOscillator(); o.type = 'sawtooth';
+        o.frequency.value = freq; o.detune.value = cents;
+        var g = ac.createGain(); g.gain.value = cents ? 0.25 : 0.5;
+        o.connect(g); g.connect(lp);
+        o.start(when); o.stop(when + 5.6);
+      });
+    }
+    function schedule() {
+      // keep ~2 cycles of plucks queued ahead of the audio clock
+      while (next < ac.currentTime + 6) {
+        CYCLE.forEach(function (r, i) { pluck(SA * r, next + i * GAP); });
+        next += CYCLE.length * GAP + REST;
+      }
+    }
+    // Corrupted Tibetan Om: throat-singing voice that morphs between "oh" and "mm",
+    // a wandering overtone whistle, a Dungchen horn, a dissonant ghost tone, and
+    // bit-crushed distortion with random stutters, pitch dives and gong strikes.
+    function startOm() {
+      var F = 65.41;                                   // C2, a monk's low chant
+      var srcs = [];
+      function src(type, freq) {
+        var o = ac.createOscillator(); o.type = type; o.frequency.value = freq;
+        srcs.push(o); return o;
+      }
+      var bus = ac.createGain(), gate = ac.createGain(), comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -26; comp.ratio.value = 8;
+      bus.connect(gate); gate.connect(comp); comp.connect(master);
+
+      var ws = ac.createWaveShaper(), curve = new Float32Array(1024);
+      for (var i = 0; i < 1024; i++) {
+        var x = i / 511.5 - 1, q = Math.round(x * 6) / 6;     // coarse steps = bit-crush
+        curve[i] = Math.tanh(3 * (0.6 * x + 0.4 * q));
+      }
+      ws.curve = curve; ws.oversample = '2x';
+
+      var voiceIn = ac.createGain(); voiceIn.gain.value = 0.5;
+      var base = [-9, 0, 8], voices = base.map(function (c) {
+        var o = src('sawtooth', F); o.detune.value = c; o.connect(voiceIn); return o;
+      });
+      var vib = src('sine', 4.5), vg = ac.createGain(); vg.gain.value = 6;   // +-6 cents
+      vib.connect(vg); voices.forEach(function (o) { vg.connect(o.detune); });
+      voiceIn.connect(ws);
+
+      var f1 = ac.createBiquadFilter(), f2 = ac.createBiquadFilter();
+      f1.type = f2.type = 'bandpass'; f1.Q.value = f2.Q.value = 5;
+      var g1 = ac.createGain(), g2 = ac.createGain(); g2.gain.value = 0.8;
+      ws.connect(f1); ws.connect(f2); f1.connect(g1); f2.connect(g2); g1.connect(bus); g2.connect(bus);
+
+      var ov = ac.createBiquadFilter(), og = ac.createGain();   // overtone whistle
+      ov.type = 'bandpass'; ov.Q.value = 40; ov.frequency.value = F * 8; og.gain.value = 2.5;
+      ws.connect(ov); ov.connect(og); og.connect(bus);
+
+      var horn = src('sawtooth', F / 2), hl = ac.createBiquadFilter(), hg = ac.createGain();
+      hl.type = 'lowpass'; hl.frequency.value = 220; hl.Q.value = 4; hg.gain.value = 0.5;
+      var swell = src('sine', 0.08), sg = ac.createGain(); sg.gain.value = 0.25;
+      swell.connect(sg); sg.connect(hg.gain);
+      horn.connect(hl); hl.connect(hg); hg.connect(bus);
+
+      var ghost = src('sawtooth', F * 4 * 1.0595), ghl = ac.createBiquadFilter(), ghg = ac.createGain();
+      ghl.type = 'lowpass'; ghl.frequency.value = 1200; ghg.gain.value = 0.06;   // minor 2nd: uneasy
+      var gl = src('sine', 0.05), glg = ac.createGain(); glg.gain.value = 0.06;
+      gl.connect(glg); glg.connect(ghg.gain);
+      ghost.connect(ghl); ghl.connect(ghg); ghg.connect(bus);
+
+      function glitch(t) {
+        for (var i = 0; i < 10; i++) gate.gain.setValueAtTime(i % 2 ? 1 : 0.05, t + i * 0.07);
+        gate.gain.setValueAtTime(1, t + 0.7);
+        voices.forEach(function (o, k) {
+          o.detune.setValueAtTime(base[k], t);
+          o.detune.linearRampToValueAtTime(-1200, t + 0.5);
+          o.detune.linearRampToValueAtTime(base[k], t + 1.4);
+        });
+      }
+      function gong(t) {
+        var f = 98 * (Math.random() < 0.5 ? 1 : 0.75);
+        [1, 2.76, 5.4, 8.93, 13.3].forEach(function (r, i) {
+          var o = ac.createOscillator(), g = ac.createGain();
+          o.frequency.value = f * r;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.35 / (i + 1), t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 9 - i);
+          o.connect(g); g.connect(bus); o.start(t); o.stop(t + 9.1);
+        });
+      }
+
+      var step = 0;
+      function tick() {
+        var t = ac.currentTime, v = step++ % 2 === 0 ? [460, 820, 1] : [260, 1150, 0.55];   // oh / mm
+        f1.frequency.setTargetAtTime(v[0], t, 1.2);
+        f2.frequency.setTargetAtTime(v[1], t, 1.2);
+        g1.gain.setTargetAtTime(1.4 * v[2], t, 1.2);
+        ov.frequency.setTargetAtTime(F * [6, 8, 9, 10, 12][Math.floor(Math.random() * 5)], t, 0.8);
+        if (step > 1 && Math.random() < 0.35) glitch(t + 1);
+        if (Math.random() < 0.3) gong(t + 1);
+      }
+      srcs.forEach(function (o) { o.start(); });
+      g1.gain.value = 1.4;
+      tick(); omTimer = setInterval(tick, 6500);
+
+      return function () {
+        clearInterval(omTimer);
+        var end = ac.currentTime + 1.5;
+        srcs.forEach(function (o) { try { o.stop(end); } catch (e) {} });
+        setTimeout(function () { bus.disconnect(); }, 1600);
+      };
+    }
+
+    function toggle(want) {
+      if (want === on) return;
+      if (!ac) setup();
+      on = want;
+      btn.setAttribute('aria-pressed', on);
+      btn.innerHTML = on ? '&#9835; Stop' : '&#9835; Play';
+      var now = ac.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setValueAtTime(master.gain.value, now);
+      if (on) {
+        ac.resume();
+        if (voice === 'om') stopOm = startOm();
+        else { next = Math.max(next, now + 0.1); schedule(); timer = setInterval(schedule, 1000); }
+        master.gain.linearRampToValueAtTime(voice === 'om' ? 0.22 : 0.18, now + 2);
+      } else {
+        if (stopOm) { stopOm(); stopOm = null; } else clearInterval(timer);
+        master.gain.linearRampToValueAtTime(0, now + 1.5);
+        setTimeout(function () { if (!on) { ac.suspend(); next = 0; } }, 1600);
+      }
+    }
+
+    function remember(v) { try { localStorage.setItem('music', v); } catch (e) {} }
+    var muted = false;
+    try { muted = localStorage.getItem('music') === 'off'; } catch (e) {}
+
+    btn.addEventListener('click', function () {
+      toggle(!on);
+      remember(on ? 'on' : 'off');
+    });
+    vbtn.addEventListener('click', function () {
+      voice = voice === 'om' ? 'tanpura' : 'om';
+      vbtn.textContent = 'Voice: ' + (voice === 'om' ? 'Om' : 'Tanpura');
+      try { localStorage.setItem('voice', voice); } catch (e) {}
+      if (on) { toggle(false); setTimeout(function () { toggle(true); }, 1700); }
+    });
+
+    // Browsers only allow audio after a user gesture, so start on the first
+    // click, tap or key press anywhere (unless the visitor turned it off before).
+    if (!muted) {
+      var events = ['pointerdown', 'mousedown', 'click', 'keydown', 'touchend'];
+      var arm = function (e) {
+        if (e.target && e.target.closest && e.target.closest('.controls')) return;  // buttons handle themselves
+        events.forEach(function (n) { document.removeEventListener(n, arm, true); });
+        toggle(true);
+      };
+      events.forEach(function (n) { document.addEventListener(n, arm, true); });
+      btn.addEventListener('click', function () {
+        events.forEach(function (n) { document.removeEventListener(n, arm, true); });
+      }, { once: true });
+    }
+  })();
+</script>
 </body>
 </html>
-
