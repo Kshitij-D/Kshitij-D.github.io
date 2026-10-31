@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
+# AI-readable site context for agents that check this file.
+# This comment is informational; it does not control crawler behavior.
+# https://kshitij-d.github.io/llms.txt
 Sitemap: https://kshitij-d.github.io/sitemap.xml
