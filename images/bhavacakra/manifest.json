@@ -10,7 +10,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/ad/043_The_Wheel_of_Life.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/00.jpg"
   },
   {
     "title": "12 twelve nidanas on the outer rim of a bhavachakra Buddhism.png",
@@ -23,7 +24,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/f/fa/12_twelve_nidanas_on_the_outer_rim_of_a_bhavachakra_Buddhism.png",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/01.png"
   },
   {
     "title": "134 Temple des mille Bouddhas La roue du Samsara.jpg",
@@ -36,7 +38,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/b/bf/134_Temple_des_mille_Bouddhas_La_roue_du_Samsara.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/02.jpg"
   },
   {
     "title": "Ajanta, grotta 17, vihara del 475-500 dc ca. , esterno, loggiato con pitture 02.jpg",
@@ -49,7 +52,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Ajanta%2C_grotta_17%2C_vihara_del_475-500_dc_ca._%2C_esterno%2C_loggiato_con_pitture_02.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/03.jpg"
   },
   {
     "title": "Ajanta, grotta 17, vihara del 475-500 dc ca. , esterno, loggiato con pitture 03.jpg",
@@ -62,11 +66,12 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Ajanta%2C_grotta_17%2C_vihara_del_475-500_dc_ca._%2C_esterno%2C_loggiato_con_pitture_03.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/04.jpg"
   },
   {
     "title": "Bhava-chakra.svg",
-    "src": "images/bhavacakra/05.png",
+    "src": "images/bhavacakra/05.svg",
     "source": "https://commons.wikimedia.org/wiki/File:Bhava-chakra.svg",
     "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Bhava-chakra.svg/500px-Bhava-chakra.svg.png",
     "author": "Rajeshodayanchal",
@@ -75,7 +80,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Bhava-chakra.svg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original (SVG)",
+    "thumb": "images/bhavacakra/thumbs/05.png"
   },
   {
     "title": "Bhava10.jpg",
@@ -88,7 +94,8 @@
     "credit": "http://www.satinanda.de/thema-01/kosmologie.html",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Bhava10.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/06.jpg"
   },
   {
     "title": "Bhavacakra Thikse.jpg",
@@ -101,7 +108,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Bhavacakra_Thikse.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/07.jpg"
   },
   {
     "title": "Bhavacakra.jpg",
@@ -114,11 +122,12 @@
     "credit": "self-made copy of PD image",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/2/27/Bhavacakra.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/08.jpg"
   },
   {
     "title": "Bhavacakra.svg",
-    "src": "images/bhavacakra/09.png",
+    "src": "images/bhavacakra/09.svg",
     "source": "https://commons.wikimedia.org/wiki/File:Bhavacakra.svg",
     "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Bhavacakra.svg/500px-Bhavacakra.svg.png",
     "author": "Whitehex",
@@ -127,7 +136,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/9/97/Bhavacakra.svg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original (SVG)",
+    "thumb": "images/bhavacakra/thumbs/09.png"
   },
   {
     "title": "Bhavachakra Samsara, Buddhist Wheel of Life, Dhamma Nagajjuna, Nagarjuna Sagar Telangana, India.jpg",
@@ -140,7 +150,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Bhavachakra_Samsara%2C_Buddhist_Wheel_of_Life%2C_Dhamma_Nagajjuna%2C_Nagarjuna_Sagar_Telangana%2C_India.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/10.jpg"
   },
   {
     "title": "Bhavachakra.jpg",
@@ -153,7 +164,8 @@
     "credit": "This image  is available from the United States Library of Congress's Prints and Photographs division under the digital ID 2011432136.This tag does not indicate the copyright status of the attached work. A normal copyright tag is still required. See Commons:Licensing.",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/2/21/Bhavachakra.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/11.jpg"
   },
   {
     "title": "Bhutan-Paro-Dzong-126-Rad des Lebens-gje.jpg",
@@ -166,7 +178,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Bhutan-Paro-Dzong-126-Rad_des_Lebens-gje.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/12.jpg"
   },
   {
     "title": "Bhutan-Paro-Dzong-128-Rad des Lebens-gje.jpg",
@@ -179,7 +192,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/0/00/Bhutan-Paro-Dzong-128-Rad_des_Lebens-gje.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/13.jpg"
   },
   {
     "title": "Buddha lebensrad.JPG",
@@ -192,7 +206,8 @@
     "credit": "Transferred from de.wikipedia to Commons by Ireas using CommonsHelper.",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/0/01/Buddha_lebensrad.JPG",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/14.jpg"
   },
   {
     "title": "Cercle-transmigration.jpg",
@@ -205,7 +220,8 @@
     "credit": "Annales du musée Guimet, tome 6 : Lalita Vistara, le Développement des jeux, trad. Philippe-Édouard Foucaux (1884). Source : https://fr.wikisource.org/wiki/Page:Annales_du_Musée_Guimet,_tome_6.djvu/335",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Cercle-transmigration.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/15.jpg"
   },
   {
     "title": "Detail of Yama, the Lord of Death, holding the Wheel of Life Wellcome V0017711.jpg",
@@ -218,7 +234,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/be/0d/d5c4f25c69a3e97e688dc4e26809.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/V0017711.html\nWellcome Collection gallery (2018-03-29): https://wellcomecollection.org/works/twmzyw7n CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Detail_of_Yama%2C_the_Lord_of_Death%2C_holding_the_Wheel_of_Life_Wellcome_V0017711.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/16.jpg"
   },
   {
     "title": "Dharma chakra image at Guru Lhakhang Monastery at Bouddhanath.jpg",
@@ -231,11 +248,12 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Dharma_chakra_image_at_Guru_Lhakhang_Monastery_at_Bouddhanath.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/17.jpg"
   },
   {
     "title": "Foucher - La Vie du Bouddha, 1949 - Figure 1.svg",
-    "src": "images/bhavacakra/18.png",
+    "src": "images/bhavacakra/18.svg",
     "source": "https://commons.wikimedia.org/wiki/File:Foucher_-_La_Vie_du_Bouddha,_1949_-_Figure_1.svg",
     "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Foucher_-_La_Vie_du_Bouddha%2C_1949_-_Figure_1.svg/500px-Foucher_-_La_Vie_du_Bouddha%2C_1949_-_Figure_1.svg.png",
     "author": "ElioPrrl",
@@ -244,7 +262,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Foucher_-_La_Vie_du_Bouddha%2C_1949_-_Figure_1.svg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original (SVG)",
+    "thumb": "images/bhavacakra/thumbs/18.png"
   },
   {
     "title": "Labrang-Gisela-Brantl-30.JPG",
@@ -257,7 +276,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Labrang-Gisela-Brantl-30.JPG",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/19.jpg"
   },
   {
     "title": "Life of life.jpg",
@@ -270,7 +290,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Life_of_life.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/20.jpg"
   },
   {
     "title": "Little world, Aichi prefecture - Buddhist Monastery in Nepal - Wheel of Life.jpg",
@@ -283,7 +304,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Little_world%2C_Aichi_prefecture_-_Buddhist_Monastery_in_Nepal_-_Wheel_of_Life.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/21.jpg"
   },
   {
     "title": "Punakha Dzong, Bhutan 29.jpg",
@@ -296,7 +318,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/6/65/Punakha_Dzong%2C_Bhutan_29.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/22.jpg"
   },
   {
     "title": "Ridpath's history of the world; being an account of the ethnic origin, primitive estate, early migrations, social conditions and present promise of the principal families of men (1897) (14597037558).jpg",
@@ -309,7 +332,8 @@
     "credit": "https://www.flickr.com/photos/internetarchivebookimages/14597037558/\n\nSource book page: https://archive.org/stream/ridpathshistoryo01ridp/ridpathshistoryo01ridp#page/n694/mode/1up",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Ridpath%27s_history_of_the_world%3B_being_an_account_of_the_ethnic_origin%2C_primitive_estate%2C_early_migrations%2C_social_conditions_and_present_promise_of_the_principal_families_of_men_%281897%29_%2814597037558%29.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/23.jpg"
   },
   {
     "title": "Ruota del Samsara.jpg",
@@ -322,7 +346,8 @@
     "credit": "File:134_Temple_des_mille_Bouddhas_La_roue_du_Samsara.jpg",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Ruota_del_Samsara.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/24.jpg"
   },
   {
     "title": "Samsara - Ganden Monastery (Karnataka - India) (33306602720).jpg",
@@ -335,7 +360,8 @@
     "credit": "Samsara - Ganden Monastery (Karnataka - India)",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Samsara_-_Ganden_Monastery_%28Karnataka_-_India%29_%2833306602720%29.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/25.jpg"
   },
   {
     "title": "Samsara.jpg",
@@ -348,7 +374,8 @@
     "credit": "http://posneg.wordpress.com/2009/01/25/liberated-infostream-infodump-datawell-datamine/",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/8/80/Samsara.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/26.jpg"
   },
   {
     "title": "Sera Monastery Lhasa Tibet China 西藏 拉萨 色拉寺 - panoramio (3).jpg",
@@ -361,7 +388,8 @@
     "credit": "https://web.archive.org/web/20161031180547/http://www.panoramio.com/photo/113520004",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/3/32/Sera_Monastery_Lhasa_Tibet_China_%E8%A5%BF%E8%97%8F_%E6%8B%89%E8%90%A8_%E8%89%B2%E6%8B%89%E5%AF%BA_-_panoramio_%283%29.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/27.jpg"
   },
   {
     "title": "Tawang Monastery Doorway Mandala.jpg",
@@ -374,7 +402,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Tawang_Monastery_Doorway_Mandala.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/28.jpg"
   },
   {
     "title": "Thankawheellife.jpg",
@@ -387,7 +416,8 @@
     "credit": "No machine-readable source provided. Own work assumed (based on copyright claims).",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Thankawheellife.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/29.jpg"
   },
   {
     "title": "The dragon, image, and demon; or, The three religions of China- Confucianism, Buddhism, and Taoism, giving an account of the mythology, idolatry, and demonolatry of the Chinese (1887) (14597457917).jpg",
@@ -400,7 +430,8 @@
     "credit": "https://www.flickr.com/photos/internetarchivebookimages/14597457917/\n\nSource book page: https://archive.org/stream/dragonimagedemon1887dubo/dragonimagedemon1887dubo#page/n224/mode/1up",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/3/31/The_dragon%2C_image%2C_and_demon%3B_or%2C_The_three_religions_of_China-_Confucianism%2C_Buddhism%2C_and_Taoism%2C_giving_an_account_of_the_mythology%2C_idolatry%2C_and_demonolatry_of_the_Chinese_%281887%29_%2814597457917%29.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/30.jpg"
   },
   {
     "title": "The wheel of life, Buddhism Bhavachakra.jpg",
@@ -413,7 +444,8 @@
     "credit": "The wheel of life",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/7/74/The_wheel_of_life%2C_Buddhism_Bhavachakra.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/31.jpg"
   },
   {
     "title": "The wheel of life, Trongsa dzong.jpg",
@@ -426,7 +458,8 @@
     "credit": "Self-photographed",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/d/d4/The_wheel_of_life%2C_Trongsa_dzong.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/32.jpg"
   },
   {
     "title": "Three poisons.jpg",
@@ -439,7 +472,8 @@
     "credit": "https://en.wikipedia.org/wiki/File:Bhavacakra_Thikse.jpg",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Three_poisons.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/33.jpg"
   },
   {
     "title": "Tibet-5692 - Wheel of Life (2654592784).jpg",
@@ -452,7 +486,8 @@
     "credit": "DSCN5692 - Wheel of Life",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Tibet-5692_-_Wheel_of_Life_%282654592784%29.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/34.jpg"
   },
   {
     "title": "Tibetan chakra.jpg",
@@ -465,7 +500,8 @@
     "credit": "Own work Taken photograph",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Tibetan_chakra.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/35.jpg"
   },
   {
     "title": "Tikshey bhavacakra and dhramapala.jpg",
@@ -478,7 +514,8 @@
     "credit": "originally posted to Flickr as IMG_1275",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Tikshey_bhavacakra_and_dhramapala.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/36.jpg"
   },
   {
     "title": "Traditional bhavachakra wall mural of Yama holding the wheel of life, Buddha pointing the way out.jpg",
@@ -491,7 +528,8 @@
     "credit": "Traditional wall mural of Yama holding the wheel of life, Buddha pointing the way out, Buddhism in America, Sakya Monastery of Tibetan Buddhism, Seattle, Washington, USA",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/4/40/Traditional_bhavachakra_wall_mural_of_Yama_holding_the_wheel_of_life%2C_Buddha_pointing_the_way_out.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/37.jpg"
   },
   {
     "title": "Wheel of Existence.jpg",
@@ -504,7 +542,8 @@
     "credit": "Sean Pathasema",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/8/88/Wheel_of_Existence.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/38.jpg"
   },
   {
     "title": "Wheel of life col.jpg",
@@ -517,7 +556,8 @@
     "credit": "",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/1/11/Wheel_of_life_col.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/39.jpg"
   },
   {
     "title": "Wheel of life Kopan Monastery.jpg",
@@ -530,7 +570,8 @@
     "credit": "Flickr",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Wheel_of_life_Kopan_Monastery.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/40.jpg"
   },
   {
     "title": "Wheel of Life.jpg",
@@ -543,7 +584,8 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Wheel_of_Life.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/41.jpg"
   },
   {
     "title": "Wheeloflife.jpg",
@@ -556,7 +598,8 @@
     "credit": "\n\n\n\nThis file was imported from Wikivoyage fr.\n",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Wheeloflife.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/42.jpg"
   },
   {
     "title": "Yama holding the Bhavacakra or Wheel of life. Gouache. Wellcome L0069380.jpg",
@@ -569,7 +612,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/9a/6c/c6ee2cc104b41dc7ff1f2c2d4050.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/L0069380.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/a8bpn2zj CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/3/32/Yama_holding_the_Bhavacakra_or_Wheel_of_life._Gouache._Wellcome_L0069380.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/43.jpg"
   },
   {
     "title": "Yama holding the wheel of life Wellcome L0069368.jpg",
@@ -582,7 +626,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/78/9e/150baaa20e65a192cc66da1f6481.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/L0069368.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/uz7p34zr CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/6/65/Yama_holding_the_wheel_of_life_Wellcome_L0069368.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/44.jpg"
   },
   {
     "title": "Yama holding the wheel of life Wellcome L0069369.jpg",
@@ -595,7 +640,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/be/f5/fb26b8e4ecafc3d8cded0e221bae.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/L0069369.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/ckxqpg6y CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/7/72/Yama_holding_the_wheel_of_life_Wellcome_L0069369.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/45.jpg"
   },
   {
     "title": "Yama, the Lord of Death, holding the Wheel of Life Wellcome L0015314.jpg",
@@ -608,7 +654,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/8b/b9/4ae5f0d9c02cc6c67b2a1c6a8ea5.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/L0015314.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/bjpk2t95 CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Yama%2C_the_Lord_of_Death%2C_holding_the_Wheel_of_Life_Wellcome_L0015314.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/46.jpg"
   },
   {
     "title": "Yama, the Lord of Death, holding the Wheel of Life Wellcome V0017705.jpg",
@@ -621,7 +668,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/c3/65/e742dfff185c798f7c04899bbce8.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/V0017705.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/pn93785g CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Yama%2C_the_Lord_of_Death%2C_holding_the_Wheel_of_Life_Wellcome_V0017705.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/47.jpg"
   },
   {
     "title": "Yama, the Lord of Death, holding the Wheel of Life Wellcome V0017709.jpg",
@@ -634,7 +682,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/18/99/7faaa26f1bf3fee847b9c762b0c7.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/V0017709.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/prukyx7k CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Yama%2C_the_Lord_of_Death%2C_holding_the_Wheel_of_Life_Wellcome_V0017709.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/48.jpg"
   },
   {
     "title": "Yama, the Lord of Death, holding the Wheel of Life Wellcome V0017709F2.jpg",
@@ -647,7 +696,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/df/0d/c8d7d9bfba970e68f96724a1764f.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/V0017709F2.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/d5zuezsp CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/2/25/Yama%2C_the_Lord_of_Death%2C_holding_the_Wheel_of_Life_Wellcome_V0017709F2.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/49.jpg"
   },
   {
     "title": "Yama, the Lord of Death, holding the Wheel of Life Wellcome V0018310.jpg",
@@ -660,7 +710,8 @@
     "credit": "https://wellcomeimages.org/indexplus/obf_images/46/3f/d923e061c092d8965d7de1e0e1bd.jpg\n\nGallery: https://wellcomeimages.org/indexplus/image/V0018310.html\nWellcome Collection gallery (2018-04-06): https://wellcomecollection.org/works/vfy6nbwf CC-BY-4.0",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Yama%2C_the_Lord_of_Death%2C_holding_the_Wheel_of_Life_Wellcome_V0018310.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/50.jpg"
   },
   {
     "title": "藏傳佛教六道輪迴圖.jpg",
@@ -673,6 +724,7 @@
     "credit": "Own work",
     "status": "downloaded",
     "fullSrc": "https://upload.wikimedia.org/wikipedia/commons/a/ac/%E8%97%8F%E5%82%B3%E4%BD%9B%E6%95%99%E5%85%AD%E9%81%93%E8%BC%AA%E8%BF%B4%E5%9C%96.jpg",
-    "fullSource": "Wikimedia Commons original"
+    "fullSource": "Wikimedia Commons original",
+    "thumb": "images/bhavacakra/thumbs/51.jpg"
   }
 ]
