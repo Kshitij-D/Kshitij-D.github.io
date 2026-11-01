@@ -111,7 +111,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
     const attacks = engine.riffBar(config, trial, riff).map(a => a.offset);
     const unit = config.beat / (config.rhythm.denominator === 8 ? 2 : 4);
-    const hits = bar => bar.events.slice(1).filter(e => attacks.some(a => Math.abs(a - e.offset) < unit * .5)).length;
+    const hits = bar => bar.events.filter(e => !e.chain).slice(1).filter(e => attacks.some(a => Math.abs(a - e.offset) < unit * .5)).length;
     plain += hits(engine.composeCycle(config, trial));
     shifted += hits(engine.composeCycle(config, trial, attacks));
     const bar = engine.composeCycle(config, trial, attacks);
@@ -523,6 +523,46 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   assert.equal(changedAtFull, 0, 'share 1 allows every doubling to stand');
   assert(afterTight < before * .45, `doublings drop sharply (${before} -> ${afterTight})`);
   assert(afterLoose > afterTight && afterLoose < before, `a share of doublings is allowed to stand (${afterTight} < ${afterLoose} < ${before})`);
+}
+// Fast figures: chains of eighths, sixteenths and the odd thirty-second tacked onto held notes, in melody and bass.
+{
+  const count = { melody: { bars: 0, chained: 0, quarterHeads: 0, steps: { 1: 0, 2: 0, 4: 0 } }, bass: { bars: 0, chained: 0, steps: { 1: 0, 2: 0, 4: 0 } } };
+  const onGrid = (v, u32) => Math.abs(v / u32 - Math.round(v / u32)) < 1e-6;
+  function inspect(events, u32, duration, record, isBass, config) {
+    events.forEach((e, i) => {
+      assert(e.gate > 0 && e.offset >= 0 && e.offset + e.gate <= duration + 1e-6, 'chains stay inside the bar');
+      assert(!i || e.offset > events[i - 1].offset, 'onsets strictly increase');
+      if (e.chain) {
+        assert(onGrid(e.offset, u32), 'chain notes sit on the thirty-second grid');
+        assert(i > 0 && (events[i - 1].chain || events[i - 1].chainHead), 'a chain follows its head');
+        const step = Math.round((e.offset - events[i - 1].offset) / u32);
+        if (events[i - 1].chain) { assert([1, 2, 4].includes(step), 'chain steps are 32nds, 16ths or 8ths (got ' + step + ')'); record.steps[step]++; }
+        else { assert(step >= 4, 'the head is at least an eighth'); if (!isBass && step === 8) record.quarterHeads++; }
+        if (!isBass) assert(config.raga.notes.includes(e.note % 12), 'chain notes are in the scale');
+      }
+    });
+    record.bars++; if (events.some(e => e.chain)) record.chained++;
+  }
+  for (let trial = 0; trial < 2500; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+    const duration = config.b * config.beat, u32 = config.quarterBeat / 8;
+    const melody = engine.composeCycle(config, trial, engine.riffBar(config, trial, riff)).events;
+    const base = melody.filter(e => !e.chain);
+    assert(base.every(e => !e.chain) && melody.length >= base.length);
+    inspect(melody, u32, duration, count.melody, false, config);
+    if (config.rhythm.kind === 'poly') continue;
+    const harmony = engine.chooseHarmony(config, null, null, random);
+    const bass = engine.composeGrooveBass(config, harmony, engine.riffBar(config, trial, riff), [], trial, false, false, config.root + config.raga.notes[harmony.rootIndex]);
+    bass.forEach(e => { if (e.chain) { const hz = config.tonic * Math.pow(2, e.note / 12); assert(hz >= 40 && hz <= 150, 'bass chain in range'); assert(config.raga.notes.includes(((e.note % 12) + 12) % 12) || harmony.notes.some(n => ((n - e.note) % 12 + 12) % 12 === 0)); } });
+    inspect(bass.filter(e => e.offset < duration), u32, duration, count.bass, true, config);
+  }
+  for (const [name, c] of Object.entries(count)) {
+    const total = c.steps[1] + c.steps[2] + c.steps[4];
+    assert(c.chained > c.bars * .1 && c.chained < c.bars * .7, `${name}: some bars chain, not all (${c.chained}/${c.bars})`);
+    assert(c.steps[2] > c.steps[1] && c.steps[1] > 0 && c.steps[1] < total * .3, `${name}: 16ths common, 32nds present but rare (${JSON.stringify(c.steps)})`);
+    assert(c.steps[4] > 0, name + ' also chains eighths');
+  }
+  assert(count.melody.quarterHeads > 30, 'a quarter note is followed by a chain');
 }
 console.log(`PASS: ${bars} bars across 216 scale/meter combinations; exact A:B timing and bounded notes.`);
 console.log(`PASS: ${groupings.size} generated 11-pulse groupings, ${riffs.size} distinct riffs, ${melodies.size} melodic rhythms; phrase memory and dotted/offbeat preferences.`);

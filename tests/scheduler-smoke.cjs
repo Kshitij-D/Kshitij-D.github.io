@@ -38,7 +38,8 @@ vm.createContext(sandbox);
 // Only the music IIFE needs to run; pull it from the "Instrument call-and-response" marker.
 const start = music.indexOf('  // Instrument call-and-response');
 const prelude = music.slice(music.indexOf('  function phraseRandom('), music.indexOf('  // Inner ring:'));
-vm.runInContext(prelude + '\n' + music.slice(start), sandbox);
+const end = music.lastIndexOf('  })();') + '  })();'.length;  // the music block; boot()'s closing lines come after it
+vm.runInContext(prelude + '\n' + music.slice(start, end), sandbox);
 const toggle = clickers.at(-1);
 if (!toggle) throw new Error('no click handler');
 toggle();

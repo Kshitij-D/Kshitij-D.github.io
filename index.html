@@ -47,7 +47,8 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap"></noscript>
   <style>
     :root {
       --bg: #fcfcfa;
@@ -80,8 +81,10 @@
     }
     body::before {
       content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-      background: #10242e url("images/mandala-tapestry.svg") center / clamp(480px, 64vw, 720px) clamp(480px, 64vw, 720px) repeat;
+      background: #10242e center / clamp(480px, 64vw, 720px) clamp(480px, 64vw, 720px) repeat;
     }
+    /* The tapestry is 1.9MB: it is requested only after the page has loaded, under a dark veil, so the profile never waits for it. */
+    body.art-ready::before { background-image: url("images/mandala-tapestry.svg"); }
     body::after {
       content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background: #000; opacity: .86; transition: opacity 1.8s ease;
@@ -372,7 +375,7 @@
 </main>
 <canvas id="whirl" aria-hidden="true"></canvas>
 <div class="gaze-art" aria-hidden="true">
-  <img id="gaze-current" src="images/mandala-center.svg" alt="" decoding="async">
+  <img id="gaze-current" data-src="images/mandala-center.svg" alt="" decoding="async">
   <img id="gaze-next" alt="" decoding="async">
   <span class="gaze-point"></span>
 </div>
@@ -416,6 +419,9 @@
     })
     .catch(function () {});
 
+  // Everything from here on is the experience (music, visualizer, backdrop scene). The profile above is plain HTML and
+  // CSS and paints on its own; this part starts after the first paint, and the WebGL scene later still, when idle.
+  function boot() {
   // A seeded phrase is remembered; new phrases receive fresh browser entropy.
   function phraseRandom(seed) {
     var state = seed >>> 0;
@@ -516,14 +522,14 @@
   // (in-scale notes, 3-4 note chords, spaced chord hits, bounded timing and strength) are enforced elsewhere.
   var traitRanges = {
     leap: [.5, 2], repeat: [.4, 3], dotted: [2, 9], gaps: [.05, .4], slip: [.35, .9], snap: [.35, .85], sam: [.2, .9], cadence: [.3, .85],
-    stabs: [.25, .9], mixing: [.3, .95], moving: [.35, .9], sweep: [.05, .5], ghosts: [.05, .45], recall: [.15, .5], noodle: [.15, .65], unison: [.1, .45]
+    stabs: [.25, .9], mixing: [.3, .95], moving: [.35, .9], sweep: [.05, .5], ghosts: [.05, .45], recall: [.15, .5], noodle: [.15, .65], unison: [.1, .45], flourish: [.1, .55]
   };
-  var defaultTraits = { leap: 1, repeat: 1, dotted: 6, gaps: .25, slip: .7, snap: .65, sam: .5, cadence: .6, stabs: .7, mixing: .65, moving: .75, sweep: .25, ghosts: .22, recall: .3, noodle: .3, unison: .25 };
+  var defaultTraits = { leap: 1, repeat: 1, dotted: 6, gaps: .25, slip: .7, snap: .65, sam: .5, cadence: .6, stabs: .7, mixing: .65, moving: .75, sweep: .25, ghosts: .22, recall: .3, noodle: .3, unison: .25, flourish: .3 };
   var tableKeys = {
     colours: ['triad', 'seventh', 'sus2', 'sus4', 'quartal', 'quartalFour', 'add9', 'sixth'],
     styles: ['groove', 'half-time', 'ride', 'rolling', 'dholak', 'syncopated', 'sparse'], grids: [2, 3, 4, 6], gestures: ['hold', 'pump', 'arp', 'swell']
   };
-  var traitGroups = { melody: ['leap', 'repeat', 'dotted', 'gaps', 'slip', 'snap', 'sam', 'cadence', 'recall'], harmony: ['moving', 'sweep', 'stabs', 'colours', 'grids', 'gestures', 'unison'], drums: ['mixing', 'ghosts', 'styles', 'noodle'] };
+  var traitGroups = { melody: ['leap', 'repeat', 'dotted', 'gaps', 'slip', 'snap', 'sam', 'cadence', 'recall', 'flourish'], harmony: ['moving', 'sweep', 'stabs', 'colours', 'grids', 'gestures', 'unison'], drums: ['mixing', 'ghosts', 'styles', 'noodle'] };
   function drawTrait(name, random) {
     if (traitRanges[name]) return traitRanges[name][0] + (traitRanges[name][1] - traitRanges[name][0]) * random();
     var table = {}; tableKeys[name].forEach(function (key) { table[key] = Math.exp((random() - .5) * 2.4); });
@@ -629,6 +635,7 @@
         }
       }
     }
+    events = addChains(config, events, random, dense ? .2 : 0);
     // The visualizer highlights the actual opening material, not a fixed fragment list.
     return { triad: Array.from(new Set(events.map(function (event) { return event.note % 12; }))).slice(0, 3), events: events };
   }
@@ -840,6 +847,45 @@
     var offset = Math.max(0, Math.min(duration - .06, event.offset + shift));
     return Object.assign({}, event, { offset: offset, gate: Math.max(.02, Math.min(event.gate, duration - offset - .02)) });
   }
+  // Fast figures. A held note keeps its head and its tail becomes a chain of eighths, sixteenths and (rarely) thirty-seconds
+  // that walks the scale toward the next note: a quarter becomes "eighth + two sixteenths", a dotted quarter or half keeps a
+  // quarter or so and chains the rest. Durations are always whole subdivisions: 1 = a thirty-second, 2 = a sixteenth, 4 = an eighth.
+  var chainPatterns = {
+    4: [[[2, 2], 3], [[1, 1, 2], .5], [[2, 1, 1], .5], [[1, 1, 1, 1], .15]],
+    6: [[[2, 2, 2], 3], [[4, 2], 2], [[2, 4], 2], [[1, 1, 2, 2], .5], [[2, 2, 1, 1], .5]],
+    8: [[[4, 4], 2.5], [[2, 2, 2, 2], 3], [[4, 2, 2], 2], [[2, 2, 4], 2], [[1, 1, 1, 1, 2, 2], .35], [[2, 1, 1, 2, 2], .4]]
+  };
+  // Scale degrees for a run that heads toward `target` and hovers beside it rather than landing on it.
+  function runDegrees(start, target, count, random) {
+    var direction = target > start ? 1 : target < start ? -1 : (random() < .5 ? -1 : 1), degree = start, result = [];
+    for (var i = 0; i < count; i++) {
+      var remaining = Math.abs(target - degree);
+      degree += remaining > 1 ? direction : remaining === 1 ? -direction : direction;
+      result.push(degree);
+    }
+    return result;
+  }
+  function addChains(config, events, random, boost) {
+    var unit32 = config.quarterBeat / 8, duration = config.b * config.beat, out = [], made = 0;
+    var chance = Math.min(.9, trait(config, 'flourish') + (boost || 0));
+    events.forEach(function (event, i) {
+      var next = events[i + 1], span = Math.round(((next ? next.offset : duration) - event.offset) / unit32);
+      if (made >= 2 || span < 8 || random() >= chance) { out.push(event); return; }
+      var tails = [4, 6, 8].filter(function (length) { return span - length >= (span >= 16 ? 8 : 4); });
+      if (!tails.length) { out.push(event); return; }
+      var tail = tails[Math.floor(random() * tails.length)], pattern = weightedChoice(chainPatterns[tail], function (entry) { return entry[1]; }, random)[0];
+      var head = span - tail, headDegree = noteDegree(config, event.note);
+      var targetDegree = next ? noteDegree(config, next.note) : headDegree + (random() < .5 ? -2 : 2);
+      var degrees = runDegrees(headDegree, targetDegree, pattern.length, random), cursor = event.offset + head * unit32;
+      out.push(Object.assign({}, event, { gate: Math.max(.05, Math.min(event.gate, head * unit32 * .92)), chainHead: true }));
+      pattern.forEach(function (length, k) {
+        out.push({ offset: cursor, note: degreeNote(config, degrees[k]), gate: Math.max(.02, length * unit32 * .88), strength: k ? .52 + random() * .12 : .66, slideFrom: null, chain: true });
+        cursor += length * unit32;
+      });
+      made++;
+    });
+    return out;
+  }
   function shapeRegister(events, responding, settle, random) {
     random = random || Math.random;
     var crest = random(), width = random() < .5 ? .08 + random() * .15 : 0;
@@ -907,6 +953,11 @@
     }
     var tones = [low(pedal - config.root)].concat(harmony.notes.map(low));
     var random = phraseRandom((config.seed || 1) + cycle * 3571);
+    var scale = config.raga.notes;
+    var neighbour = function (note, direction) {
+      var index = scale.indexOf(((note % 12) + 12) % 12);
+      return index < 0 ? note : low(scale[(index + direction + scale.length) % scale.length]);
+    };
     var selected = attacks.filter(function (attack, i) { return i === 0 || random() < .15 + attack.strength * .4; }).slice(0, 4);
     var events = selected.map(function (attack, i) {
       return { offset: attack.offset, note: tones[i === 0 && random() < .7 ? 0 : Math.floor(random() * tones.length)],
@@ -917,11 +968,7 @@
     var noodle = trait(config, 'noodle');
     if (config.rhythm.kind !== 'poly' && random() < noodle + .15) {
       var unit = config.quarterBeat / 4, span = Math.round(config.b * config.beat / unit), taken = events.map(function (event) { return Math.round(event.offset / unit); });
-      var scale = config.raga.notes, extras = Math.max(1, Math.min(3, Math.round(random() * 3 * noodle * 1.6)));
-      var neighbour = function (note, direction) {
-        var index = scale.indexOf(((note % 12) + 12) % 12);
-        return index < 0 ? note : low(scale[(index + direction + scale.length) % scale.length]);
-      };
+      var extras = Math.max(1, Math.min(3, Math.round(random() * 3 * noodle * 1.6)));
       for (var n = 0; n < extras; n++) {
         var free = [];
         for (var slot = 1; slot < span - 1; slot++) if (taken.every(function (tick) { return Math.abs(tick - slot) >= 2; })) free.push(slot);
@@ -944,8 +991,30 @@
       var tripletStart = (1 + Math.floor(random() * (config.b - 1))) * config.beat, third = config.beat / 3;
       events = events.filter(function (event) { return event.offset < tripletStart - .001 || event.offset >= tripletStart + config.beat - .001; });
       for (var t = 0; t < 3; t++) events.push({ offset: tripletStart + t * third, note: tones[t === 0 ? 0 : Math.floor(random() * tones.length)],
-        strength: t ? .6 : .74, clipped: true });
+        strength: t ? .6 : .74, clipped: true, triplet: true });
       events.sort(function (a, b) { return a.offset - b.offset; });
+    }
+    // A quick chain on the longest held bass note: eighths and sixteenths (rarely thirty-seconds) walking the scale into the next note.
+    if (config.rhythm.kind !== 'poly' && events.length && random() < noodle * .7 + .08) {
+      var unit32 = config.quarterBeat / 8, full = config.b * config.beat, widest = -1, widestSpan = 0;
+      events.forEach(function (event, i) {
+        if (event.triplet) return;   // binary subdivisions do not sit on a triplet grid
+        var span = Math.round(((i + 1 < events.length ? events[i + 1].offset : full) - event.offset) / unit32);
+        if (span > widestSpan) { widestSpan = span; widest = i; }
+      });
+      var tails = [4, 6, 8].filter(function (length) { return widestSpan - length >= (widestSpan >= 16 ? 8 : 4); });
+      if (widest >= 0 && widestSpan >= 8 && tails.length) {
+        var tail = tails[Math.floor(random() * tails.length)], pattern = weightedChoice(chainPatterns[tail], function (entry) { return entry[1]; }, random)[0];
+        var holder = events[widest], upcoming = events[widest + 1], cursor = holder.offset + (widestSpan - tail) * unit32;
+        var way = upcoming ? (upcoming.note > holder.note ? 1 : upcoming.note < holder.note ? -1 : (random() < .5 ? 1 : -1)) : (random() < .5 ? 1 : -1), walker = holder.note;
+        holder.chainHead = true;
+        pattern.forEach(function (length, k) {
+          walker = neighbour(walker, way);
+          events.push({ offset: cursor, note: walker, strength: k ? .5 : .62, clipped: true, chain: true, length: length });
+          cursor += length * unit32;
+        });
+        events.sort(function (a, b) { return a.offset - b.offset; });
+      }
     }
     // Sustain toward the next riff attack instead of restarting automatically on every barline.
     if (!events.length && !carrying) events.push({ offset: 0, note: tones[0], strength: .65 });
@@ -953,6 +1022,7 @@
       var nextOffset = i + 1 < events.length ? events[i + 1].offset : config.b * config.beat + (maySustain && following.length ? following[0].offset : 0);
       event.gate = Math.max(.04, nextOffset - event.offset - .018) * (event.clipped ? .58 : 1);
       if (event.ghost) event.gate = Math.min(event.gate, .07);
+      if (event.chain) event.gate = Math.max(.02, Math.min(event.gate, event.length * config.quarterBeat / 8 * .88));
     });
     return events;
   }
@@ -1364,7 +1434,7 @@
 
   // Psychedelic whirl: swirls the mandala image with a WebGL shader.
   // Begin with the original image; playback animates it and Stop preserves the current frame.
-  (function () {
+  function startScene() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var canvas = document.getElementById('whirl');
     var gl = canvas.getContext('webgl', { antialias: false, depth: false, stencil: false, premultipliedAlpha: false });
@@ -1480,7 +1550,7 @@
     var musicState = [0, 0, 0, 0], lastFrame = 0;
     var SPEED = 0.28;
     var running = false, raf = 0, flow = 0, ringFlow = 0;
-    var ready = false, musicRequested = false;
+    var ready = false, musicRequested = !!window.musicWanted;
     var focalImages = [document.getElementById('gaze-current'), document.getElementById('gaze-next')];
     var focalAspects = { 'images/mandala-center.svg': 1 };
     function setFocalSource(image, path) {
@@ -1665,7 +1735,7 @@
     if (document.readyState === 'complete') startGallery();
     else window.addEventListener('load', startGallery, { once: true });
 
-  })();
+  }
 
   // Instrument call-and-response, scale-derived harmony, and evolving percussion.
   (function () {
@@ -2041,7 +2111,7 @@
         bar.events = bar.events.filter(function (event, index) {
           if (melodyBreak) return false;
           if (restNow) return false;
-          return event.offset < bar.duration - raagSession.beat * .35 && (!sparseNow || repeated || index === 0 || Math.random() < .6);
+          return (event.chain || event.chainHead || event.offset < bar.duration - raagSession.beat * .35) && (!sparseNow || repeated || index === 0 || event.chain || event.chainHead || Math.random() < .6);
         });
         // Space is welcome, but never a one-note bar or a bar that sounds only in one half.
         if (!melodyBreak && !restNow && !repeated) bar.events = balanceMelody(bar.events, sourceEvents.filter(function (event) { return event.offset < bar.duration - raagSession.beat * .35; }), bar.duration, forceDense ? Math.max(5, Math.ceil(bar.duration / raagSession.quarterBeat * 1.25)) : 3);
@@ -2279,6 +2349,7 @@
       document.body.classList.toggle('music-playing', on);
       // Hidden page links must not remain focusable during the immersive view.
       document.querySelector('main').inert = on;
+      window.musicWanted = on;
       if (window.setMusicBackground) window.setMusicBackground(on);
       btn.setAttribute('aria-pressed', on);
       btn.innerHTML = on ? '&#9835; Stop' : '&#9835; Play';
@@ -2323,6 +2394,27 @@
     // Music and the shader start only from the explicit Play control.
 
   })();
+
+  // Reveal the artwork and start the scene once the page has loaded and the browser has nothing better to do.
+  function revealArt() {
+    document.body.classList.add('art-ready');
+    var centre = document.getElementById('gaze-current');
+    if (centre && !centre.getAttribute('src')) centre.src = centre.getAttribute('data-src');
+  }
+  function whenIdle(task) {
+    if (window.requestIdleCallback) requestIdleCallback(task, { timeout: 3000 });
+    else setTimeout(task, 800);
+  }
+  function later() { whenIdle(function () { revealArt(); startScene(); }); }
+  if (document.readyState === 'complete') later();
+  else window.addEventListener('load', later, { once: true });
+  }
+
+  // Start the experience one frame after the first paint (hidden tabs never run animation frames, so there is a timer too).
+  var booted = false;
+  function bootOnce() { if (!booted) { booted = true; boot(); } }
+  requestAnimationFrame(function () { setTimeout(bootOnce, 0); });
+  setTimeout(bootOnce, 1000);
 </script>
 </body>
 </html>
