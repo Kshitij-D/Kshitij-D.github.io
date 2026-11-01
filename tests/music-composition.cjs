@@ -111,7 +111,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
     const attacks = engine.riffBar(config, trial, riff).map(a => a.offset);
     const unit = config.beat / (config.rhythm.denominator === 8 ? 2 : 4);
-    const hits = bar => bar.events.filter(e => !e.chain).slice(1).filter(e => attacks.some(a => Math.abs(a - e.offset) < unit * .5)).length;
+    const hits = bar => bar.events.filter(e => !e.chain && !e.again).slice(1).filter(e => attacks.some(a => Math.abs(a - e.offset) < unit * .5)).length;
     plain += hits(engine.composeCycle(config, trial));
     shifted += hits(engine.composeCycle(config, trial, attacks));
     const bar = engine.composeCycle(config, trial, attacks);
@@ -132,12 +132,12 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     replies++; if (JSON.stringify(call.map(h => [h.offset, h.gesture])) !== JSON.stringify(reply.map(h => [h.offset, h.gesture]))) differs++;
     shapes.add(call.map(h => Math.round(h.offset / unit)).join());
     for (const chords of [call, reply]) {
-      const answered = engine.answerChords(chords, bar.events, duration, unit);
+      const answered = engine.answerChords(chords, engine.mainOnsets(bar.events), duration, unit);
       assert(answered.length >= 1 && answered.length <= chords.length);
       answered.forEach((h, i) => {
         assert(h.gate > 0 && h.offset + h.gate <= duration + 1e-8 && (!i || h.offset - answered[i - 1].offset >= unit * 3 - 1e-8));
         const tick = Math.round(h.offset / unit);
-        if (tick > 0 && !h.bed) assert(bar.events.every(e => Math.abs(Math.round(e.offset / unit) - tick) > 1), 'Entrances avoid melody onsets');
+        if (tick > 0 && !h.bed) assert(engine.mainOnsets(bar.events).every(e => Math.abs(Math.round(e.offset / unit) - tick) > 1), 'Entrances avoid melody onsets');
       });
     }
     let lean = 0;
@@ -159,7 +159,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     const landed = engine.landOnTargets(config, bar.events, chord, { sam: true, cadence: 'tonic' }, random);
     assert.equal(landed.length, bar.events.length);
     assert.equal(landed[0].offset, 0, 'Sam entrance');
-    if (landed.length === 1 || landed[0].note % 12 === chord.root || !config.raga.notes.includes(chord.root)) samHits++;
+    if (landed.filter(e => !e.again).length === 1 || landed[0].note % 12 === chord.root || !config.raga.notes.includes(chord.root)) samHits++;
     const last = landed[landed.length - 1];
     if (last.note % 12 === 0) cadences++;
     landed.forEach((e, i) => {
@@ -287,39 +287,43 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   assert(engine.drumStyles.length >= 7 && engine.drumStyles.includes('ride'));
   for (const style of engine.drumStyles) assert(signatures[style].size > 50, style + ' should vary');
 }
-// Stab pairs: exactly two short sharp hits in a gap, late in the bar, with the pad easing off first.
+// Stabs come in figures (single, pair, triple, pickup): short sharp hits in gaps, with the pad easing off first.
 {
+  const seen = {}, sizes = { single: 1, pair: 2, triple: 3, pickup: [1, 2] };
   let added = 0, trials = 0;
-  for (let trial = 0; trial < 1200; trial++) {
+  for (let trial = 0; trial < 3000; trial++) {
     const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
-    const duration = config.b * config.beat, unit = config.quarterBeat / 4;
+    const duration = config.b * config.beat, unit = config.quarterBeat / 4, ticks = Math.round(duration / unit);
     const bar = engine.composeCycle(config, trial, engine.riffBar(config, trial, riff));
+    bar.events = engine.mainOnsets(bar.events);
     const pad = engine.answerChords(engine.harmonyPhrases(config, riff, { placement: random(), answer: random() }, false), bar.events, duration, unit);
-    const out = engine.addStabPair(pad, bar.events, duration, unit, random, .7);
+    const out = engine.addStabs(pad, bar.events, duration, unit, random, .7);
     trials++;
     if (out === pad) continue;
     added++;
     const stabs = out.filter(h => h.articulation === 'sharp');
-    assert.equal(stabs.length, 2); assert.equal(out.length, pad.length + 2);
-    const gap = Math.round((stabs[1].offset - stabs[0].offset) / unit);
-    assert(gap >= 2 && gap <= 4);
-    stabs.forEach(h => {
+    const figure = stabs[0].figure; seen[figure] = (seen[figure] || 0) + 1;
+    assert([].concat(sizes[figure]).includes(stabs.length) && stabs.every(h => h.figure === figure && h.role === 'stab'), figure + ' has the right number of hits');
+    assert.equal(out.length, pad.length + stabs.length);
+    stabs.forEach((h, i) => {
       const tick = Math.round(h.offset / unit);
-      assert(h.gate > 0 && h.offset + h.gate < duration && tick >= total(duration, unit) * .3 - 1);
-      assert(bar.events.every(e => Math.abs(Math.round(e.offset / unit) - tick) > 1), 'Stabs sit in gaps');
+      assert(h.gate > 0 && h.offset + h.gate < duration && tick >= ticks * .2 - 1);
+      assert(!i || (tick - Math.round(stabs[i - 1].offset / unit) >= 2 && tick - Math.round(stabs[i - 1].offset / unit) <= 6), 'hits in a figure are a sixteenth-note pair to a dotted quarter apart');
+      assert(bar.events.every(e => Math.round(e.offset / unit) !== tick), 'Stabs never sit on a melody onset');
     });
+    if (figure === 'pickup') assert(Math.round(stabs[stabs.length - 1].offset / unit) === ticks - 2, 'a pickup lands just before the next sam');
     out.slice(0, pad.length).forEach(h => assert(h.offset + h.gate <= stabs[0].offset + 1e-9, 'Pad eases off before the stabs'));
   }
-  function total(d, u) { return Math.round(d / u); }
-  assert(added > trials * .12 && added < trials * .4, `stab pairs are occasional (${added}/${trials})`);
+  assert.deepEqual(Object.keys(seen).sort(), ['pair', 'pickup', 'single', 'triple'], 'every stab figure is used');
+  assert(added > trials * .25 && added < trials * .7, `stabs come often but not constantly (${added}/${trials})`);
 }
-// The ride is a rare, two-bar style, and only the ride style rings the bell.
+// The ride is rare to be picked (but is not cut short), and only the ride style rings the bell.
 {
   let picks = 0, rides = 0, previous = null;
   for (let trial = 0; trial < 6000; trial++) {
     const pick = engine.chooseDrumStyle(previous, random);
     assert(pick.style !== previous);
-    assert(pick.style === 'ride' ? pick.bars === 2 : pick.bars >= 8 && pick.bars <= 14);
+    assert(pick.bars >= 12 && pick.bars <= 18, 'the ride holds as long as any other style');
     picks++; if (pick.style === 'ride') rides++;
     previous = pick.style;
   }
@@ -370,9 +374,9 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   for (let trial = 0; trial < 1000; trial++) {
     const config2 = engine.chooseSession(null), riff = engine.makeRiff(config2, random);
     const chords = engine.harmonyPhrases(config2, riff, { placement: random(), answer: random() }, false);
-    if (chords[0].offset === 0) sam++;
+    if (chords.reduce((best, h) => h.strength > best.strength ? h : best).offset === 0) sam++;   // the loudest chord (a soft bridge may sit under a late one)
   }
-  assert(sam < 1000 * .75, `chords should not always enter on one (${sam}/1000)`);
+  assert(sam < 1000 * .9 && sam > 1000 * .55, `the full chord usually, but not always, enters on one (${sam}/1000)`);
 }
 // Shader precompute: the per-frame layer constants and hue matrix equal the original per-pixel GLSL maths.
 {
@@ -563,6 +567,214 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     assert(c.steps[4] > 0, name + ' also chains eighths');
   }
   assert(count.melody.quarterHeads > 30, 'a quarter note is followed by a chain');
+}
+// Re-struck notes: held notes are played again on the same pitch, which makes the line feel hand-played.
+{
+  let bars = 0, withAgain = 0, pairs = 0, same = 0;
+  for (let trial = 0; trial < 3000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+    const duration = config.b * config.beat;
+    const events = engine.composeCycle(config, trial, engine.riffBar(config, trial, riff)).events;
+    bars++;
+    events.forEach((e, i) => {
+      assert(e.gate > 0 && e.offset + e.gate <= duration + 1e-6 && (!i || e.offset > events[i - 1].offset));
+      if (i) { pairs++; if (e.note === events[i - 1].note) same++; }
+      if (e.again) {
+        assert(i > 0 && events[i - 1].note === e.note, 'a re-strike keeps the pitch of the note it follows');
+        assert(e.strength < events[i - 1].strength + 1e-9 || events[i - 1].again, 'later hits are softer than the accented first');
+        assert(events.slice(0, i).some(h => h.holds), 'a re-strike follows its held note');
+      }
+    });
+    if (events.some(e => e.again)) withAgain++;
+    // The pitch rule survives every later rewrite of the line.
+    const chord = engine.chordPitchClasses(engine.chooseHarmony(config, null, null, random), config, config);
+    const landed = engine.landOnTargets(config, events, chord, { sam: true, cadence: 'tonic' }, random);
+    const shaped = engine.shapeRegister(landed, true, true, random);
+    const varied = engine.varyRepeat(config, shaped, random);
+    for (const line of [landed, shaped, varied]) line.forEach((e, i) => { if (e.again) assert.equal(e.note, line[i - 1].note, 'again-notes still match after rewriting'); });
+  }
+  assert(withAgain > bars * .3, `many bars re-strike a note (${withAgain}/${bars})`);
+  assert(same > pairs * .25 && same < pairs * .6, `repeated pitches are common but not constant (${(100 * same / pairs).toFixed(0)}%)`);
+}
+// Tempo: a comfortable ceiling, and changes lean back to the middle instead of piling up at an extreme
+// (the edge zones are ~21% of the log range, so an even spread would spend ~20% of its time in each).
+{
+  const [fast, slow] = engine.quarterRange;
+  assert(60 / fast <= 151 && 60 / slow >= 94, 'tempo stays between about 95 and 150 BPM');
+  const centre = Math.sqrt(fast * slow);
+  for (const start of [fast, slow, centre]) {
+    let quarter = start, nearFast = 0, nearSlow = 0, total = 40000, sum = 0;
+    for (let i = 0; i < total; i++) {
+      const next = engine.nextTempo(quarter, random);
+      assert(next >= fast - 1e-12 && next <= slow + 1e-12 && Math.abs(next / quarter - 1) <= .12 + 1e-9, 'steps are gentle and stay in range');
+      quarter = next; sum += Math.log(quarter / centre);
+      if (quarter < fast * 1.1) nearFast++; if (quarter > slow / 1.1) nearSlow++;
+    }
+    assert(nearFast < total * .205, `a long listen does not pile up at the fast end (${(100 * nearFast / total).toFixed(1)}% from ${(60 / start).toFixed(0)} BPM)`);
+    assert(nearSlow < total * .205, `or at the slow end (${(100 * nearSlow / total).toFixed(1)}%)`);
+    assert(Math.abs(sum / total) < .12, 'the walk is centred on the middle tempo');
+  }
+}
+// Melodic techniques: every one gets used, ornaments stay in the scale and inside the bar, dynamics shape the bar, nothing breaks order.
+{
+  const seen = {}, slopes = { up: 0, down: 0, arch: 0 };
+  let notes = 0, withTechnique = 0, bars = 0;
+  const names = Object.keys(engine.melodyTechniques);
+  assert.equal(names.length, 11);
+  for (let trial = 0; trial < 6000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+    const duration = config.b * config.beat;
+    const base = engine.composeCycle(config, trial, engine.riffBar(config, trial, riff)).events;
+    const events = engine.expressMelody(config, base, random);
+    bars++;
+    assert.equal(engine.mainOnsets(events).length, engine.mainOnsets(base).length, 'ornaments add no main onsets');
+    events.forEach((e, i) => {
+      assert(e.gate > 0 && e.offset >= 0 && e.offset + e.gate <= duration + 1e-6, 'inside the bar');
+      assert(!i || e.offset > events[i - 1].offset, 'order is kept');
+      assert(e.strength > 0 && e.strength <= 1, 'strength stays in range');
+      assert(config.raga.notes.includes(((e.note % 12) + 12) % 12) || !e.orn, 'ornament pitches are in the scale');
+      if (e.glide !== undefined) assert(e.glide >= .05 && e.glide <= .2 && e.slideFrom !== null && e.slideFrom !== undefined, 'a glide has a start pitch');
+      if (e.fall !== undefined) assert([2, 3, 4].includes(e.fall));
+      if (e.vibrato !== undefined) assert(e.vibrato >= 12 && e.vibrato <= 26.001 && e.gate >= .02);
+      if (e.attack !== undefined) assert(e.attack >= .1 && e.attack <= .241);
+      if (e.technique) { seen[e.technique] = (seen[e.technique] || 0) + 1; withTechnique++; assert(names.includes(e.technique)); }
+      if (!e.orn && !e.again && !e.chain) notes++;
+    });
+    const mains = events.filter(e => !e.orn && !e.again && !e.chain);
+    if (mains.length >= 4 && mains.every(e => !e.technique)) {
+      const first = mains[0].strength, mid = mains[Math.floor(mains.length / 2)].strength, last = mains[mains.length - 1].strength;
+      if (last > first + .12) slopes.up++; else if (first > last + .12) slopes.down++; else if (mid > first + .08 && mid > last + .08) slopes.arch++;
+    }
+  }
+  assert.deepEqual(Object.keys(seen).sort(), names.slice().sort(), 'every technique is used');
+  assert(withTechnique > notes * .1 && withTechnique < notes * .6, `techniques are common but not constant (${withTechnique}/${notes})`);
+  assert(slopes.up > 20 && slopes.down > 20 && slopes.arch > 10, 'bars crescendo, decrescendo and swell ' + JSON.stringify(slopes));
+  // With the dial at maximum nearly every eligible note takes a technique; at zero none do.
+  const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+  const base = engine.composeCycle(config, 3, engine.riffBar(config, 3, riff)).events;
+  const off = engine.expressMelody(Object.assign({}, config, { character: Object.assign({}, config.character, { ornament: 0, shaping: 0 }) }), base, random);
+  assert(off.every((e, i) => e.technique === undefined && e.strength === base[i].strength && !e.orn), 'ornament 0 and shaping 0 leave the line untouched');
+}
+// Chord techniques: fade, slide-in, tremolo and shimmer are chosen with the comping, kept in range, and silent when expression is 0.
+{
+  const count = { fade: 0, slideIn: 0, tremolo: 0, shimmer: 0 };
+  let hits = 0;
+  for (let trial = 0; trial < 3000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random), pattern = { placement: random(), answer: random() };
+    const chords = engine.harmonyPhrases(config, riff, pattern, trial % 2 === 0);
+    chords.forEach((h, i) => {
+      hits++;
+      assert(typeof h.fade === 'boolean' && typeof h.shimmer === 'boolean' && [0, 100, 200].includes(h.slideIn) && (h.tremolo === 0 || (h.tremolo >= 5 && h.tremolo <= 6.5)));
+      assert(!(h.fade && h.articulation === 'swell'), 'a swell never fades');
+      assert(!h.slideIn || i === 0, 'only the first hit slides in');
+      assert(!(h.bed && (h.fade || h.shimmer)), 'beds stay plain');
+      for (const k of Object.keys(count)) if (h[k]) count[k]++;
+    });
+    const silent = engine.harmonyPhrases(Object.assign({}, config, { character: Object.assign({}, config.character, { expression: 0 }) }), riff, pattern, false);
+    assert(silent.every(h => !h.fade && !h.slideIn && !h.tremolo && !h.shimmer), 'expression 0 is plain');
+  }
+  for (const [k, n] of Object.entries(count)) assert(n > hits * .015 && n < hits * .5, `${k} is occasional (${n}/${hits})`);
+}
+// Bass techniques: shape on every note, glides only where there is a slide, vibrato on long notes, a fall only on the last.
+{
+  const count = { vibrato: 0, soft: 0, fall: 0, glide: 0, pluck: 0, sustain: 0 };
+  let notes = 0;
+  for (let trial = 0; trial < 3000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+    if (config.rhythm.kind === 'poly') continue;
+    const harmony = engine.chooseHarmony(config, null, null, random);
+    const bass = engine.composeGrooveBass(config, harmony, engine.riffBar(config, trial, riff), [], trial, false, false, config.root + config.raga.notes[harmony.rootIndex]);
+    bass.forEach((e, i) => {
+      notes++; count[e.shape]++;
+      assert(e.shape === 'pluck' || e.shape === 'sustain');
+      if (e.glide !== undefined) { count.glide++; assert(e.slideFrom !== undefined && e.slideFrom !== null && e.glide >= .05 && e.glide <= .131); }
+      if (e.vibrato !== undefined) { count.vibrato++; assert(e.gate >= .4 && e.vibrato >= 8 && e.vibrato <= 16.001 && !e.chain); }
+      if (e.soft) { count.soft++; assert(i > 0 && !e.chain && !e.ghost); }
+      if (e.fall !== undefined) { count.fall++; assert(i === bass.length - 1 && [2, 3, 4].includes(e.fall)); }
+    });
+  }
+  for (const k of Object.keys(count)) assert(count[k] > 20, `bass ${k} appears (${count[k]}/${notes})`);
+  assert(count.pluck > notes * .25 && count.sustain > notes * .35, 'both bass shapes are common');
+}
+// Melody density: extras (re-strikes, chains, ornaments) only fill the room under the note budget, so no bar gets frantic.
+{
+  const rates = [], total = { main: 0, extra: 0 };
+  for (let trial = 0; trial < 5000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random), duration = config.b * config.beat;
+    const base = engine.composeCycle(config, trial, engine.riffBar(config, trial, riff)).events;
+    const expressed = engine.expressMelody(config, base, random);
+    const mains = engine.mainOnsets(expressed).length, extras = expressed.length - mains;
+    total.main += mains; total.extra += extras;
+    assert(extras <= Math.max(0, engine.noteBudget(config, true) - mains) + 1, `extras stay inside the budget (${extras} extras, ${mains} main, budget ${engine.noteBudget(config, true)})`);
+    rates.push(expressed.length / duration);
+  }
+  rates.sort((a, b) => a - b);
+  const mean = rates.reduce((a, b) => a + b, 0) / rates.length, p90 = rates[Math.floor(rates.length * .9)];
+  assert(mean < 2.3, `average note rate stays calm (${mean.toFixed(2)}/s)`);
+  assert(p90 < 3.2, `even busy bars stay under 3.2 notes a second (${p90.toFixed(2)}/s)`);
+  assert(total.extra < (total.main + total.extra) * .3, `extras are under 30% of notes (${(100 * total.extra / (total.main + total.extra)).toFixed(0)}%)`);
+}
+// Chords never leave a bar silent on sam: a late entrance gets a soft bridging chord underneath it.
+{
+  let late = 0, bridged = 0, bars = 0;
+  for (let trial = 0; trial < 4000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random), unit = config.quarterBeat / 4;
+    const chords = engine.harmonyPhrases(config, riff, { placement: random(), answer: random() }, trial % 2 === 0);
+    if (chords[0].bed) continue;
+    bars++;
+    assert(chords[0].offset <= unit * 2 + 1e-9, 'a pad bar always has a chord on or right after sam');
+    if (chords.length > 1 && chords[0].strength === .5) {
+      bridged++;
+      assert(chords[0].offset === 0 && chords[0].articulation === 'swell' && chords[0].role === 'pad' && chords[1].role === 'answer', 'the bridge blooms in softly and the late chord replies');
+      assert(chords[0].gate >= (chords[1].offset - chords[0].offset) * .95 - .0201, 'the bridge holds until the late chord arrives');
+    }
+  }
+  assert(bridged > bars * .05, `late entrances are bridged (${bridged}/${bars})`);
+}
+// The bass goes with the drums: it is built from the actual kicks, picks up some snares, and keeps its fills to the gaps.
+{
+  const stat = { with: { bass: 0, onKick: 0, onDrum: 0, kicks: 0, covered: 0 }, without: { bass: 0, onKick: 0, onDrum: 0, kicks: 0, covered: 0 } };
+  for (let trial = 0; trial < 3000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+    if (config.rhythm.kind === 'poly') continue;
+    const style = engine.drumStyles[Math.floor(random() * engine.drumStyles.length)];
+    const drums = engine.composeDrums(config, trial, random, riff, false, style, random() < .6 ? engine.drumStyles[Math.floor(random() * engine.drumStyles.length)] : null);
+    const harmony = engine.chooseHarmony(config, null, null, random), pedal = config.root + config.raga.notes[harmony.rootIndex];
+    const kicks = drums.filter(d => d.voice === 'kick'), onDrum = drums.filter(d => ['kick', 'snare', 'tom'].includes(d.voice));
+    const near = (list, e) => list.some(d => Math.abs(d.offset - e.offset) < .012);
+    for (const [key, given] of [['with', drums], ['without', undefined]]) {
+      const bass = engine.composeGrooveBass(config, harmony, engine.riffBar(config, trial, riff), [], trial, false, false, pedal, given).filter(e => !e.ghost && !e.chain);
+      const s = stat[key]; s.bass += bass.length; s.kicks += kicks.length;
+      bass.forEach(e => { assert(e.gate > 0 && e.strength > 0 && e.strength <= 1); if (near(kicks, e)) s.onKick++; if (near(onDrum, e)) s.onDrum++; if (given && e.kick) assert(near(onDrum, e), 'a locked hit sits exactly on a drum hit'); });
+      kicks.forEach(k => { if (bass.some(e => Math.abs(k.offset - e.offset) < .012)) s.covered++; });
+    }
+  }
+  const w = stat.with, o = stat.without;
+  assert(w.onKick / w.bass > .65 && w.onDrum / w.bass > .75, `bass hits sit on the drums (${(100 * w.onKick / w.bass).toFixed(0)}% on kicks, ${(100 * w.onDrum / w.bass).toFixed(0)}% on any drum)`);
+  assert(w.covered / w.kicks > .38 && w.covered / w.kicks > o.covered / o.kicks * 1.1, `the bass plays most kicks (${(100 * w.covered / w.kicks).toFixed(0)}% vs ${(100 * o.covered / o.kicks).toFixed(0)}% before)`);
+  assert(w.onDrum / w.bass > o.onDrum / o.bass + .05, 'the lock beats following the riff alone');
+}
+// The bass goes with the chords too: a note lands on (nearly) every long chord hit, mostly on the chord's root.
+{
+  let pads = 0, covered = 0, roots = 0, bars = 0, notes = 0;
+  for (let trial = 0; trial < 3000; trial++) {
+    const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
+    if (config.rhythm.kind === 'poly') continue;
+    const duration = config.b * config.beat, unit = config.quarterBeat / 4;
+    const drums = engine.composeDrums(config, trial, random, riff, false, 'groove', null);
+    const harmony = engine.chooseHarmony(config, null, null, random), pedal = config.root + config.raga.notes[harmony.rootIndex];
+    const chords = engine.harmonyPhrases(config, riff, { placement: random(), answer: random() }, trial % 2 === 0);
+    const bass = engine.composeGrooveBass(config, harmony, engine.riffBar(config, trial, riff), [], trial, false, false, pedal, drums, chords);
+    bars++; notes += bass.length;
+    bass.forEach((e, i) => assert(e.gate > 0 && e.strength > 0 && e.strength <= 1 && (!i || e.offset > bass[i - 1].offset)));
+    for (const hit of chords.filter(h => h.articulation !== 'sharp' && !h.bed)) {
+      pads++;
+      const note = bass.find(e => !e.chain && Math.abs(e.offset - hit.offset) <= unit * .5 + 1e-6);
+      if (note) { covered++; if ((((note.note - (pedal - config.root)) % 12) + 12) % 12 === 0) roots++; assert(note.chord === true, 'the note is marked as a chord note'); }
+    }
+  }
+  assert(covered / pads > .97, `nearly every long chord hit gets a bass note (${(100 * covered / pads).toFixed(0)}%)`);
+  assert(roots / covered > .8, `mostly on the root (${(100 * roots / covered).toFixed(0)}%)`);
 }
 console.log(`PASS: ${bars} bars across 216 scale/meter combinations; exact A:B timing and bounded notes.`);
 console.log(`PASS: ${groupings.size} generated 11-pulse groupings, ${riffs.size} distinct riffs, ${melodies.size} melodic rhythms; phrase memory and dotted/offbeat preferences.`);

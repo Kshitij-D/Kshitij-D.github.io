@@ -10,7 +10,7 @@ const fills = [], strokes = [], arcs = [];
 const ctx = new Proxy({}, {
   get: (t, k) => k === 'clearRect' || k === 'save' || k === 'restore' || k === 'scale' || k === 'beginPath' || k === 'stroke' || k === 'fill' || k === 'fillText' || k === 'moveTo' || k === 'lineTo'
     ? () => { if (k === 'fill') fills.push(t.fillStyle); if (k === 'stroke') strokes.push(t.strokeStyle); }
-    : k === 'arc' ? (...a) => arcs.push(a) : t[k],
+    : k === 'arc' ? (...a) => arcs.push(a) : k === 'measureText' ? text => ({ width: String(text).length * 4 }) : t[k],
   set: (t, k, v) => { t[k] = v; return true; }
 });
 const element = () => new Proxy(function () {}, {
@@ -30,7 +30,7 @@ const config = sandbox.raagSession, riff = sandbox.makeRiff(config, Math.random)
 const duration = config.b * config.beat, unit = config.quarterBeat / 4;
 const events = sandbox.composeCycle(config, 3).events;
 let chords = sandbox.answerChords(sandbox.harmonyPhrases(config, riff, { placement: .3, answer: .6 }, false), events, duration, unit);
-chords = sandbox.addStabPair(chords, events, duration, unit, () => 0, 1);
+chords = sandbox.addStabs(chords, events, duration, unit, () => 0, 1);
 sandbox.window.raagViz.bars.push({ start: 0, duration, config, events, chords, triad: [0], drums: [] });
 sandbox.window.raagViz.setPlaying(true);
 sandbox.window.raagViz.setTime(chords[0].offset + .01);
