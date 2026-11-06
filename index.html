@@ -93,9 +93,6 @@
     }
     body.music-playing::after { opacity: .05; }
     body.music-playing main { opacity: 0; pointer-events: none; }
-    @media (prefers-reduced-motion: reduce) {
-      body::after, main { transition: none !important; }
-    }
     main {
       z-index: 1; opacity: 1; transition: opacity 1.8s ease;
       max-width: 820px; width: calc(100% - 2rem); margin: 3rem auto 380px; padding: 3rem 2.5rem 2rem; position: relative;
@@ -179,7 +176,6 @@
     }
     #music-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: -4px; }
     @keyframes invite-play { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
-    @media (prefers-reduced-motion: reduce) { #music-toggle { animation: none !important; } }
     .gaze-art {
       position: fixed; inset: 0; z-index: -1; pointer-events: none;
       display: grid; place-items: center; overflow: hidden;
@@ -255,7 +251,6 @@
     .shuffle svg { display: block; transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
     .shuffle.spinning svg { transform: rotate(360deg); }
     .shuffle[aria-busy="true"] { pointer-events: none; }
-    @media (prefers-reduced-motion: reduce) { .shuffle, .shuffle svg, .raag-visualizer, .raag-visualizer canvas, .raag-readout { transition: none !important; } }
 
     @supports (height: 100svh) {
       .gaze-art img { width: min(90vw, calc(92svh * var(--art-aspect, 1))); }
@@ -1765,7 +1760,6 @@
   // falls, and each drum has its own mark (kick: filled dot, tom: ring, snare: diamond, hat: tick or open ring, ride: cross), over a faint beat grid.
   (function () {
     var canvas = document.getElementById('raag-canvas'), ctx = canvas.getContext('2d'), panel = document.getElementById('raag-panel');
-    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     var config = raagSession, bars = [], playing = false, audioTime = 0, raf = 0;
     var idleConfig = null, idleOffsets = [], idleDrums = [], beatRing = { key: '', offsets: [] }, audioStamp = 0;
     var swars = {0: 'सा', 1: 'रे♭', 2: 'रे', 3: 'ग♭', 4: 'ग', 5: 'म', 6: 'म♯', 7: 'प', 8: 'ध♭', 9: 'ध', 10: 'नि♭', 11: 'नि'};
@@ -1811,7 +1805,7 @@
     window.raagViz = {
       bars: bars,
       setPlaying: function (value) { cancelAnimationFrame(raf); playing = value; window.musicVisual = value ? musicVisualAt(bars, audioTime) : null; draw(); },
-      setTime: function (value) { audioTime = value; audioStamp = performance.now(); window.musicVisual = playing ? musicVisualAt(bars, audioTime) : null; if (reducedMotion.matches) draw(); }
+      setTime: function (value) { audioTime = value; audioStamp = performance.now(); window.musicVisual = playing ? musicVisualAt(bars, audioTime) : null; }
     };
     // Pick a ring out on the visualizer itself: hover it (or press it) and the others dim while its name takes the centre; press it again, or
     // press the centre, to let go. The arrow keys do the same from the keyboard.
@@ -1828,7 +1822,7 @@
       if (text + colour === lastTitle) return;
       lastTitle = text + colour; titleNode.textContent = text; titleNode.style.color = colour;
     }
-    function pickOut() { highlight = hovered || pinned; canvas.style.cursor = hovered ? 'pointer' : ''; renderTitle(); if (!playing || reducedMotion.matches) draw(); }
+    function pickOut() { highlight = hovered || pinned; canvas.style.cursor = hovered ? 'pointer' : ''; renderTitle(); if (!playing) draw(); }
     canvas.addEventListener('pointermove', function (event) {
       if (event.pointerType === 'touch') return;
       var ring = ringAt(event);
@@ -1880,10 +1874,10 @@
       // just ahead of it), each a little different in length and shimmering. They are drawn first, so the notes sit on top, and they run
       // smoothly between the audio-clock updates.
       if (active) {
-        var sweep = Math.min(duration, elapsed + (reducedMotion.matches ? 0 : Math.min(.08, (now - audioStamp) / 1000)));
-        var rayAngle = -Math.PI / 2 + sweep / duration * Math.PI * 2, shimmer = reducedMotion.matches ? 0 : now / 1000;
+        var sweep = Math.min(duration, elapsed + Math.min(.08, (now - audioStamp) / 1000));
+        var rayAngle = -Math.PI / 2 + sweep / duration * Math.PI * 2, shimmer = now / 1000;
         var warm = shades ? 'rgb(' + shades.melody.map(function (v) { return Math.round(v + (255 - v) * .5); }).join(',') + ')' : '#ffe9a8';   // the picture's lead hue, lightened
-        for (var k = -3; k <= (reducedMotion.matches ? 0 : 14); k++) {
+        for (var k = -3; k <= 14; k++) {
           var spread = (((k * 7 + 5) % 11) + 11) % 11 / 10, reach = 97 + 30 * spread;
           var strength = k < 0 ? .09 * (1 + k / 4) : .3 * Math.pow(1 - k / 15, 2), wobble = .75 + .25 * Math.sin(shimmer * 2.6 + k * 1.9);
           var heading = rayAngle - k * .06, half = .012 + .02 * spread * (k >= 0 ? 1 : .6);
@@ -1908,7 +1902,7 @@
         ring.offsets.forEach(function (offset, n) {
           var angle = -Math.PI / 2 + offset / duration * Math.PI * 2;
           var lit = active && n === ring.index;
-          var pulse = reducedMotion.matches ? 0 : 5 * W * Math.exp(-Math.max(0, elapsed - offset) * 18);
+          var pulse = 5 * W * Math.exp(-Math.max(0, elapsed - offset) * 18);
           var baseSize = 3 * W;
           ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * ring.radius, cy + Math.sin(angle) * ring.radius, lit ? baseSize + pulse : baseSize, 0, Math.PI * 2);
           ctx.globalAlpha = (lit ? 1 : .6) * dim(ring.name); ctx.lineWidth = 1.8; ctx.strokeStyle = halo; ctx.stroke(); ctx.fillStyle = ring.color; ctx.fill();
@@ -1918,7 +1912,7 @@
       (bar && bar.chords ? bar.chords : []).forEach(function (chord) {
         var from = -Math.PI / 2 + chord.offset / duration * Math.PI * 2;
         var sounding = active && elapsed >= chord.offset && elapsed < chord.offset + chord.gate, stab = chord.articulation === 'sharp' || chord.tone !== undefined;
-        var bloom = reducedMotion.matches || !sounding ? 0 : 4 * W * Math.exp(-Math.max(0, elapsed - chord.offset) * 14);
+        var bloom = !sounding ? 0 : 4 * W * Math.exp(-Math.max(0, elapsed - chord.offset) * 14);
         ctx.beginPath(); ctx.arc(cx + Math.cos(from) * 60, cy + Math.sin(from) * 60, (stab ? 2.2 : 3.2) * W + bloom, 0, Math.PI * 2);
         ctx.globalAlpha = (sounding ? 1 : .7) * dim('harmony'); ctx.lineWidth = 1.8; ctx.strokeStyle = halo; ctx.stroke(); ctx.fillStyle = pal.harmony; ctx.fill();
       });
@@ -1932,7 +1926,7 @@
       });
       (bar ? bar.drums || [] : idleDrums).forEach(function (hit) {
         var angle = -Math.PI / 2 + hit.offset / duration * Math.PI * 2, age = elapsed - hit.offset, voice = hit.voice, s = hit.strength;
-        var lit = active && age >= 0 && age < .22, swell = reducedMotion.matches || !lit ? 0 : 3 * W * Math.exp(-age * 18);
+        var lit = active && age >= 0 && age < .22, swell = !lit ? 0 : 3 * W * Math.exp(-age * 18);
         var radius = voice === 'kick' || voice === 'tom' ? 76 : voice === 'snare' ? 92 : 108;
         var cos = Math.cos(angle), sin = Math.sin(angle), x = cx + cos * radius, y = cy + sin * radius;
         ctx.globalAlpha = (lit ? 1 : .65) * dim('drums');
@@ -1961,22 +1955,28 @@
       ctx.lineWidth = 1;
       ctx.globalAlpha = 1;
       ctx.restore();
-      if (playing && !reducedMotion.matches) raf = requestAnimationFrame(draw);
+      if (playing) raf = requestAnimationFrame(draw);
     }
     draw();
   })();
 
   // Psychedelic whirl: swirls the mandala image with a WebGL shader.
   // Begin with the original image; playback animates it and Stop preserves the current frame.
+  // Why the scene is or is not running, for the `#debug` readout (a phone with no background can say what stopped it).
+  window.sceneStatus = 'waiting';
   function startScene() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var canvas = document.getElementById('whirl');
-    var gl = canvas.getContext('webgl', { antialias: false, depth: false, stencil: false, premultipliedAlpha: false });
-    if (!gl) return;
+    var gl = canvas.getContext('webgl', { antialias: false, depth: false, stencil: false, premultipliedAlpha: false }) || canvas.getContext('experimental-webgl');
+    if (!gl) { window.sceneStatus = 'no WebGL'; return; }
+    canvas.addEventListener('webglcontextlost', function (event) { event.preventDefault(); ready = false; canvas.style.opacity = '0'; window.sceneStatus = 'WebGL context lost'; });
 
     var vs = 'attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }';
     var fs = [
+      '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+      'precision highp float;',
+      '#else',
       'precision mediump float;',
+      '#endif',
       'uniform sampler2D img; uniform vec4 atlasInfo; uniform float artCount; uniform vec2 sceneSeed; uniform vec2 res; uniform float t; uniform float h; uniform float ia; uniform vec2 texel; uniform vec2 tiles; uniform vec4 music; uniform float effect; uniform vec4 layerA[6]; uniform vec4 layerB[6]; uniform mat3 hueMat;',
       'vec4 artwork(vec2 uv, float choice) {',
       '  float index = min(artCount - 1.0, floor(choice * artCount));',
@@ -2058,7 +2058,7 @@
       gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, fs));
       gl.linkProgram(prog);
       if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-    } catch (e) { return; }
+    } catch (e) { window.sceneStatus = 'shader: ' + String(e.message || e).slice(0, 120); return; }
     gl.useProgram(prog);
     var compositionSeed = new Uint32Array(2);
     if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(compositionSeed);
@@ -2208,6 +2208,9 @@
     };
 
     async function loadGallery() {
+      try { await buildGallery(); } catch (e) { window.sceneStatus = 'gallery: ' + String(e.message || e).slice(0, 120); }
+    }
+    async function buildGallery() {
       var paths = ['images/mandala-center.svg'];
       var roundArt = new Set(paths);
       // The atlas only needs small thumbnails; full-resolution files load on demand when shown.
@@ -2240,7 +2243,9 @@
         }
       }
       await Promise.all([worker(), worker(), worker(), worker()]);
-      if (!images[0]) return;
+      // A phone may fail to decode the big first picture (a 1.4MB SVG); any other picture that loaded stands in for it rather than losing the whole scene.
+      var stand = images.filter(Boolean)[0];
+      if (!stand) { window.sceneStatus = 'gallery: no picture loaded'; return; }
       focalPaths = paths.filter(function (_, index) { return !!images[index]; });
       images.forEach(function (image, index) { if (image) focalAspects[paths[index]] = image.width / image.height; });
       focalIndex = Math.floor(Math.random() * focalPaths.length);
@@ -2253,7 +2258,7 @@
       var stamp = document.createElement('canvas'); stamp.width = stamp.height = tile;
       var brush = stamp.getContext('2d');
       images.forEach(function (image, index) {
-        image = image || images[0];
+        image = image || stand;
         var x = index % columns * tile, y = Math.floor(index / columns) * tile;
         // Preserve portrait/landscape proportions; only the original mandala is circular.
         var available = (tile - 4) * (index === 0 ? 1 : .96);
@@ -2291,14 +2296,14 @@
         gl.uniform1i(gl.getUniformLocation(prog, 'img'), 0);
         gl.uniform4f(gl.getUniformLocation(prog, 'atlasInfo'), columns, rows, 2 / tile, 0);
         gl.uniform1f(gl.getUniformLocation(prog, 'artCount'), images.length);
-      } catch (e) { return; }
+      } catch (e) { window.sceneStatus = 'texture: ' + String(e.message || e).slice(0, 120); return; }
       gl.uniform1f(uIa, 1);
       gl.uniform2f(uTexel, 1 / (tile - 4), 1 / (tile - 4));
       resize();
       var resizeTimer = 0;
       window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
       document.addEventListener('visibilitychange', function () { if (!document.hidden && running) { lastFrame = 0; play(); } });
-      ready = true;
+      ready = true; window.sceneStatus = 'ready';
       frame(performance.now());
       window.setMusicBackground(musicRequested);
     }
@@ -3487,6 +3492,16 @@
     else setTimeout(task, 800);
   }
   function later() { whenIdle(function () { revealArt(); startScene(); }); }
+  // Open the page with #debug on the end to see what the background scene is doing (useful on a phone where it does not appear).
+  if (/debug/.test(location.hash)) {
+    var report = document.createElement('div');
+    report.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:99;max-width:92vw;padding:6px 8px;border-radius:6px;background:rgba(0,0,0,.78);color:#9fe;font:12px/1.4 monospace;white-space:pre-wrap;pointer-events:none';
+    document.body.appendChild(report);
+    setInterval(function () {
+      report.textContent = 'scene: ' + window.sceneStatus + '\nscreen: ' + innerWidth + 'x' + innerHeight + ' @' + (window.devicePixelRatio || 1)
+        + '\nbody.art-ready: ' + document.body.classList.contains('art-ready') + '\nmusic engine: ' + (window.AudioContext || window.webkitAudioContext ? 'yes' : 'no');
+    }, 500);
+  }
   if (document.readyState === 'complete') later();
   else window.addEventListener('load', later, { once: true });
   }
