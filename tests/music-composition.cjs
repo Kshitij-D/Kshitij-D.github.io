@@ -65,8 +65,8 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     assert.equal(JSON.stringify(chords), JSON.stringify(c.harmonyPhrases(config, riff, pattern)), 'Remember a chord phrase');
     assert(chords.length >= 1 && chords.length <= 6, 'A handful of hits at most');
     chords.forEach((h, i) => {
-      assert(['sustained', 'swell'].includes(h.articulation) && h.strum >= 0 && h.gate > 0 && h.offset + h.gate <= duration + 1e-9);
-      assert(['pad', 'answer', 'arp'].includes(h.role) && ['hold', 'pump', 'arp', 'swell'].includes(h.gesture));
+      assert(['sustained', 'swell', 'sharp'].includes(h.articulation) && h.strum >= 0 && h.gate > 0 && h.offset + h.gate <= duration + 1e-9);
+      assert(['pad', 'answer', 'arp', 'chop'].includes(h.role) && ['hold', 'pump', 'arp', 'swell', 'chop', 'push'].includes(h.gesture));
       assert(!i || h.offset - chords[i - 1].offset >= config.quarterBeat * .75 - 1e-9, 'Hits stay a dotted eighth apart');
       if (!h.bed) assert(h.gate >= ((chords[i + 1]?.offset ?? duration) - h.offset) * .95 - .0201, 'Pad hits are long');
       else assert(h.strength <= .8 + 1e-9, 'Beds sit under the lead');
@@ -148,7 +148,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   assert(differs > replies * .85, `replies should take a different shape (${differs}/${replies})`);
   assert(shapes.size >= 6, 'Comping rhythms vary: ' + [...shapes].length);
 }
-// The lead lands: sam gets the chord root, strong beats get chord tones, cadences resolve.
+// The lead lands: sam gets the chord root, strong beats get a chord tone or a colour tone, cadences resolve.
 {
   let samHits = 0, beatHits = 0, beatTotal = 0, cadences = 0;
   for (let trial = 0; trial < 600; trial++) {
@@ -170,7 +170,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   }
   assert.equal(samHits, 600);
   assert.equal(cadences, 600);
-  assert(beatHits > beatTotal * .6, `strong beats mostly carry chord tones (${beatHits}/${beatTotal})`);
+  assert(beatHits > beatTotal * .12 && beatHits < beatTotal * .5, `chord tones are a clear minority on the strong beats, but not absent (${beatHits}/${beatTotal} on a chord tone)`);
 }
 // Lead continuity: bars that start from the previous degree begin closer to it.
 {
@@ -301,7 +301,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     trials++;
     if (out === pad) continue;
     added++;
-    const stabs = out.filter(h => h.articulation === 'sharp');
+    const stabs = out.filter(h => h.articulation === 'sharp' && h.role === 'stab');   // chops are sharp too, but they are part of the pad
     const figure = stabs[0].figure; seen[figure] = (seen[figure] || 0) + 1;
     assert([].concat(sizes[figure]).includes(stabs.length) && stabs.every(h => h.figure === figure && h.role === 'stab'), figure + ' has the right number of hits');
     assert.equal(out.length, pad.length + stabs.length);
@@ -323,7 +323,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   for (let trial = 0; trial < 6000; trial++) {
     const pick = engine.chooseDrumStyle(previous, random);
     assert(pick.style !== previous);
-    assert(pick.bars >= 12 && pick.bars <= 18, 'the ride holds as long as any other style');
+    assert(pick.bars >= 12 * engine.pace && pick.bars <= 18 * engine.pace, 'the ride holds as long as any other style (and every style holds for ' + engine.pace + 'x the original 12-18 bars)');
     picks++; if (pick.style === 'ride') rides++;
     previous = pick.style;
   }
@@ -405,7 +405,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
     for (let row = 0; row < 3; row++) close(M[row] * colour[0] + M[3 + row] * colour[1] + M[6 + row] * colour[2], expected[row], 1e-5, 'hue');
   }
 }
-// Comping gestures: all four appear, beds are quiet and unstabby, arps pick real chord tones, replies often change gesture.
+// Comping gestures: all six appear, beds are quiet and unstabby, arps pick real chord tones, replies often change gesture.
 {
   const seen = {}, modes = new Set();
   let changed = 0, replies = 0;
@@ -420,7 +420,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
       for (let len = 3; len <= 4; len++) { const index = engine.arpIndex(h.tone, len, h.arpMode); assert(Number.isInteger(index) && index >= 0 && index < len); }
     }
   }
-  assert.deepEqual(Object.keys(seen).sort(), ['arp', 'hold', 'pump', 'swell']);
+  assert.deepEqual(Object.keys(seen).sort(), ['arp', 'chop', 'hold', 'pump', 'push', 'swell']);
   assert.deepEqual([...modes].sort(), ['down', 'up', 'updown']);
   assert(changed > replies * .3, `replies often change gesture (${changed}/${replies})`);
   for (const mode of ['up', 'down', 'updown']) {
@@ -462,7 +462,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   assert(engine.repeatChance(wild) > engine.repeatChance(tame) + .1, 'wilder sessions repeat more');
   for (let trial = 0; trial < 500; trial++) {
     const config = engine.chooseSession(null);
-    assert(engine.repeatChance(config) >= .15 && engine.repeatChance(config) <= .85);
+    assert(engine.repeatChance(config) >= .45 && engine.repeatChance(config) <= .88);   // the lead often comes back to its motif
     const events = engine.composeCycle(config, trial).events;
     const varied = engine.varyRepeat(config, events, random);
     assert.equal(varied.length, events.length);
@@ -620,7 +620,7 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
   const seen = {}, slopes = { up: 0, down: 0, arch: 0 };
   let notes = 0, withTechnique = 0, bars = 0;
   const names = Object.keys(engine.melodyTechniques);
-  assert.equal(names.length, 11);
+  assert.equal(names.length, 20);
   for (let trial = 0; trial < 6000; trial++) {
     const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);
     const duration = config.b * config.beat;
@@ -633,21 +633,21 @@ for (let scale = 0; scale < 12; scale++) for (let meter = 0; meter < 18; meter++
       assert(!i || e.offset > events[i - 1].offset, 'order is kept');
       assert(e.strength > 0 && e.strength <= 1, 'strength stays in range');
       assert(config.raga.notes.includes(((e.note % 12) + 12) % 12) || !e.orn, 'ornament pitches are in the scale');
-      if (e.glide !== undefined) assert(e.glide >= .05 && e.glide <= .2 && e.slideFrom !== null && e.slideFrom !== undefined, 'a glide has a start pitch');
-      if (e.fall !== undefined) assert([2, 3, 4].includes(e.fall));
-      if (e.vibrato !== undefined) assert(e.vibrato >= 12 && e.vibrato <= 26.001 && e.gate >= .02);
+      if (e.glide !== undefined) assert(e.glide >= .05 && e.glide <= .4001 && e.slideFrom !== null && e.slideFrom !== undefined, 'a glide has a start pitch');
+      if (e.fall !== undefined) assert([2, 3, 4, -2, -3, -4, -5].includes(e.fall));
+      if (e.vibrato !== undefined) assert(e.vibrato >= 12 && e.vibrato <= 65.001 && e.gate >= .02);
       if (e.attack !== undefined) assert(e.attack >= .1 && e.attack <= .241);
       if (e.technique) { seen[e.technique] = (seen[e.technique] || 0) + 1; withTechnique++; assert(names.includes(e.technique)); }
       if (!e.orn && !e.again && !e.chain) notes++;
     });
     const mains = events.filter(e => !e.orn && !e.again && !e.chain);
-    if (mains.length >= 4 && mains.every(e => !e.technique)) {
+    if (mains.length >= 4 && mains.every(e => e.technique !== 'accent')) {
       const first = mains[0].strength, mid = mains[Math.floor(mains.length / 2)].strength, last = mains[mains.length - 1].strength;
       if (last > first + .12) slopes.up++; else if (first > last + .12) slopes.down++; else if (mid > first + .08 && mid > last + .08) slopes.arch++;
     }
   }
   assert.deepEqual(Object.keys(seen).sort(), names.slice().sort(), 'every technique is used');
-  assert(withTechnique > notes * .1 && withTechnique < notes * .6, `techniques are common but not constant (${withTechnique}/${notes})`);
+  assert(withTechnique > notes * .1 && withTechnique < notes * .85, `techniques are common but not constant (${withTechnique}/${notes})`);
   assert(slopes.up > 20 && slopes.down > 20 && slopes.arch > 10, 'bars crescendo, decrescendo and swell ' + JSON.stringify(slopes));
   // With the dial at maximum nearly every eligible note takes a technique; at zero none do.
   const config = engine.chooseSession(null), riff = engine.makeRiff(config, random);

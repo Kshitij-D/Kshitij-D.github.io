@@ -58,6 +58,7 @@
       --accent: #1f5f8b;
       --tag-bg: #eef3f7;
       --card: rgba(252, 252, 250, .93);
+      --panel: rgba(252, 252, 250, .55);
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -68,6 +69,7 @@
         --accent: #7cb4dc;
         --tag-bg: #1d2a33;
         --card: rgba(20, 20, 19, .9);
+        --panel: rgba(20, 20, 19, .42);
       }
     }
     * { box-sizing: border-box; }
@@ -87,7 +89,7 @@
     body.art-ready::before { background-image: url("images/mandala-tapestry.svg"); }
     body::after {
       content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background: #000; opacity: .86; transition: opacity 1.8s ease;
+      background: #000; opacity: .6; transition: opacity 1.8s ease;
     }
     body.music-playing::after { opacity: .05; }
     body.music-playing main { opacity: 0; pointer-events: none; }
@@ -203,19 +205,57 @@
     #whirl { opacity: 0; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
     .raag-visualizer {
       position: fixed; left: max(1rem, env(safe-area-inset-left)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 9;
-      width: clamp(216px, min(13.5vw, 30vh), 300px);
-      border: 1px solid var(--rule); border-radius: 22px; background: var(--bg);
+      width: clamp(192px, min(12vw, 27vh), 266px);
+      border: 1px solid var(--rule); border-radius: 22px; background: var(--panel);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
       box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
       overflow: hidden;
     }
-    .raag-visualizer canvas { display: block; width: 100%; height: auto; }
-    .raag-readout { padding: 0 12px 14px; font: 11px/1.5 Inter, sans-serif; text-align: center; }
+    .raag-readout { padding: 0 12px 14px; font: 12px/1.5 Inter, sans-serif; text-align: center; }
     .raag-readout p { margin: 4px 0; }
-    #swar-current { font-size: 15px; font-weight: 600; }
     .raag-scale { display: flex; justify-content: center; gap: 3px; margin: 8px 0; }
-    .raag-scale span { flex: 1 1 0; min-width: 0; padding: 4px 0; font-size: 9.5px; white-space: nowrap; border: 1px solid transparent; border-radius: 5px; }
+    .raag-scale span { flex: 1 1 0; min-width: 0; padding: 4px 0; font: 12px/1.3 Inter, "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif; white-space: nowrap; border: 1px solid transparent; border-radius: 5px; }
     .raag-scale .fragment { border-color: var(--accent); }
     .raag-scale .sounding { background: var(--accent); color: var(--bg); }
+    .raag-title { margin: 0 0 2px; font: 600 14px/1.35 Inter, "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif; }
+    .raag-title:empty { display: none; }
+    .raag-status { margin: 2px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; white-space: pre-line; }
+    .raag-status:empty { display: none; }
+    @media (max-width: 699px), (max-height: 420px) { .raag-status { display: none; } }
+    /* Before Play the panel is just the Play button; pressing Play opens it into the full visualizer, and Stop folds it back. */
+    .raag-visualizer { transition: width .6s cubic-bezier(.2, .7, .2, 1), background-color .5s ease, border-color .5s ease, box-shadow .5s ease; }
+    /* The rings sit on a dark round scope, so the colours, outlines and rays read the same on the light and the dark theme. */
+    .raag-visualizer canvas {
+      display: block; width: 100%; height: auto; padding: 8px; border-radius: 50%;
+      background: radial-gradient(circle closest-side, rgba(6, 10, 16, .42) 0%, rgba(6, 10, 16, .34) 96%, rgba(6, 10, 16, 0) 100%); background-clip: content-box;
+      max-height: 420px; transition: max-height .6s cubic-bezier(.2, .7, .2, 1), opacity .45s ease;
+    }
+    .raag-visualizer canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .raag-readout { max-height: 260px; overflow: hidden; transition: max-height .6s cubic-bezier(.2, .7, .2, 1), opacity .45s ease, padding .6s ease; }
+    body:not(.music-playing) .raag-visualizer { width: 150px; background: transparent; border-color: transparent; box-shadow: none; overflow: visible; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    body:not(.music-playing) .raag-visualizer canvas { max-height: 0; opacity: 0; visibility: hidden; transition: max-height .6s cubic-bezier(.2, .7, .2, 1), opacity .45s ease, visibility 0s linear .6s; }
+    body:not(.music-playing) .raag-readout { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+    body:not(.music-playing) .controls { padding: 0; }
+    @media (max-width: 699px), (max-height: 420px) {
+      body:not(.music-playing) .raag-visualizer { display: block; width: 150px; }
+      body:not(.music-playing) .raag-visualizer canvas, body:not(.music-playing) .raag-readout { display: none; }
+    }
+    /* Inside the panel, beside Play and only while playing: a new combination (next artwork and new music), blended in smoothly. */
+    .controls { gap: 8px; }
+    .controls #music-toggle { flex: 1 1 0; min-width: 0; }
+    .controls .shuffle {
+      flex: 0 0 44px; width: 44px; padding: 0; display: grid; place-items: center; overflow: hidden;
+      transition: flex-basis .5s cubic-bezier(.2, .7, .2, 1), width .5s cubic-bezier(.2, .7, .2, 1), margin .5s ease, opacity .4s ease, color .2s ease;
+    }
+    body:not(.music-playing) .controls .shuffle {
+      flex-basis: 0; width: 0; margin-left: -8px; opacity: 0; border-width: 0; visibility: hidden; pointer-events: none;
+      transition: flex-basis .5s cubic-bezier(.2, .7, .2, 1), width .5s cubic-bezier(.2, .7, .2, 1), margin .5s ease, opacity .4s ease, visibility 0s linear .5s;
+    }
+    .shuffle:focus-visible { outline: 3px solid var(--accent); outline-offset: -4px; }
+    .shuffle svg { display: block; transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
+    .shuffle.spinning svg { transform: rotate(360deg); }
+    .shuffle[aria-busy="true"] { pointer-events: none; }
+    @media (prefers-reduced-motion: reduce) { .shuffle, .shuffle svg, .raag-visualizer, .raag-visualizer canvas, .raag-readout { transition: none !important; } }
 
     @supports (height: 100svh) {
       .gaze-art img { width: min(90vw, calc(92svh * var(--art-aspect, 1))); }
@@ -228,10 +268,9 @@
         display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center;
         border-radius: 16px;
       }
-      .raag-visualizer canvas { grid-column: 1; grid-row: 1 / 3; width: 72px; height: 72px; }
+      .raag-visualizer canvas { grid-column: 1; grid-row: 1 / 3; width: 72px; height: 72px; padding: 3px; }
       .raag-readout { grid-column: 2; padding: 5px 10px 0 0; }
       .raag-readout p { margin: 0; }
-      #swar-current { font-size: 13px; }
       .raag-scale { margin: 3px 0; }
       .raag-scale span { padding: 2px 0; }
       .controls { grid-column: 2; padding: 3px 10px 8px 0; }
@@ -386,14 +425,20 @@
   <img id="gaze-next" alt="" decoding="async">
   <span class="gaze-point"></span>
 </div>
-<div class="raag-visualizer" role="group" aria-label="Raga rhythm visualizer">
-  <canvas id="raag-canvas" width="352" height="352" aria-hidden="true"></canvas>
+<div class="raag-visualizer" id="raag-panel" role="group" aria-label="Raga rhythm visualizer">
+  <canvas id="raag-canvas" width="540" height="540" tabindex="0" aria-label="The four rings: bass, lead, chords and drums. Hover or press a ring to pick it out; with the keyboard, use the left and right arrow keys."></canvas>
   <div class="raag-readout">
-    <p id="swar-current">Ready to play</p>
+    <p id="raag-title" class="raag-title"></p>
+    <p id="raag-status" class="raag-status"></p>
     <div id="raag-scale" class="raag-scale" aria-label="Scale notes"></div>
   </div>
   <div class="controls">
     <button id="music-toggle" type="button" aria-pressed="false">&#9835; Play</button>
+    <button id="shuffle" class="shuffle" type="button" aria-label="New combination: next artwork and new music" title="New combination (press N)">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 17h3c3 0 4-2 6-5s3-5 6-5h3"/><path d="M18 4l3 3-3 3"/><path d="M3 7h3c1.5 0 2.5.7 3.4 2"/><path d="M14.6 15.2c1 1 2 1.8 3.4 1.8h3"/><path d="M18 14l3 3-3 3"/>
+      </svg>
+    </button>
   </div>
 </div>
 <script data-goatcounter="https://kshitij-d.goatcounter.com/count"
@@ -504,9 +549,10 @@
       rhythms = rhythms.filter(function (rhythm) { return rhythm.label !== previous.rhythm.label; });
     }
     var raga = ragas[Math.floor(Math.random() * ragas.length)];
-    var rhythmRoll = Math.random(), useMeter = rhythmRoll < .8;
+    // True polyrhythms (3:2, 7:4 and so on) are a colour that comes up now and then: about one session in ten, the rest are plain or odd meters.
+    var polyShare = .1, rhythmRoll = Math.random(), useMeter = rhythmRoll < 1 - polyShare;
     var rhythmPool = rhythms.filter(function (rhythm) { return rhythm.kind === (useMeter ? 'meter' : 'poly'); });
-    var rhythm = rhythmPool[Math.min(rhythmPool.length - 1, Math.floor((useMeter ? rhythmRoll / .8 : (rhythmRoll - .8) / .2) * rhythmPool.length))];
+    var rhythm = rhythmPool[Math.min(rhythmPool.length - 1, Math.floor((useMeter ? rhythmRoll / (1 - polyShare) : (rhythmRoll - (1 - polyShare)) / polyShare) * rhythmPool.length))];
     // Sometimes step outside the lists: an improvised scale, an unusual meter.
     var improviseRaga = Math.random() < .3, improviseRhythm = Math.random() < .35;
     if (improviseRaga) { var made = generateRaga(Math.random); if (made && (!previous || made.name !== previous.raga.name)) raga = made; }
@@ -533,8 +579,8 @@
   };
   var defaultTraits = { leap: 1, repeat: 2.5, dotted: 6, gaps: .25, slip: .7, snap: .65, sam: .5, cadence: .6, stabs: .75, mixing: .65, moving: .75, sweep: .25, ghosts: .22, recall: .3, noodle: .3, unison: .25, flourish: .15, ornament: .15, shaping: .45, expression: .3, pad: .8 };
   var tableKeys = {
-    colours: ['triad', 'seventh', 'sus2', 'sus4', 'quartal', 'quartalFour', 'add9', 'sixth'],
-    styles: ['groove', 'half-time', 'ride', 'rolling', 'dholak', 'syncopated', 'sparse'], grids: [2, 3, 4, 6], gestures: ['hold', 'pump', 'arp', 'swell'],
+    colours: ['triad', 'seventh', 'sus2', 'sus4', 'quartal', 'quartalFour', 'add9', 'sixth', 'shell', 'sevenSus'],
+    styles: ['groove', 'half-time', 'ride', 'rolling', 'dholak', 'syncopated', 'sparse', 'boombap', 'djent'], grids: [2, 3, 4, 6], gestures: ['hold', 'pump', 'arp', 'swell', 'chop', 'push'],
     techniques: ['slide', 'scoop', 'fall', 'vibrato', 'swell', 'staccato', 'legato', 'accent', 'grace', 'mordent', 'trill']
   };
   var traitGroups = { melody: ['leap', 'repeat', 'dotted', 'gaps', 'slip', 'snap', 'sam', 'cadence', 'recall', 'flourish', 'ornament', 'shaping', 'techniques'], harmony: ['moving', 'sweep', 'stabs', 'colours', 'grids', 'gestures', 'unison', 'expression', 'pad'], drums: ['mixing', 'ghosts', 'styles', 'noodle'] };
@@ -568,7 +614,7 @@
         if (next - note > 4) ok = false;
         if (set.indexOf(note + 1) >= 0 && set.indexOf(note + 2) >= 0) ok = false;
       });
-      if (ok) return { name: 'Improvised ' + set.join('-'), label: 'Improvised', notes: set };
+      if (ok) return { name: 'Improvised ' + set.join('-'), label: 'मुक्त', notes: set };   // mukta: free
     }
     return null;
   }
@@ -696,6 +742,30 @@
       return Object.assign({}, entry.chord, { offset: offset, gate: Math.max(.05, (end - offset) * .96) });
     });
   }
+  // The rhythm part locks with the bass: a long chord entrance a sixteenth away from a bass note moves onto it, so the two land together.
+  // Entrances stay a dotted eighth apart and sam keeps its place. A push leans ahead of the bass on purpose, and chops and beds keep their
+  // own rhythm, so they are left alone; a pad is cut off where the next push arrives.
+  function lockChordsToBass(chords, bass, duration, unit) {
+    var movable = chords.filter(function (chord) { return !chord.bed && !chord.push; });
+    if (!movable.length) return chords;
+    var total = Math.round(duration / unit), ticks = bass.map(function (event) { return Math.round(event.offset / unit); });
+    var entries = [];
+    movable.forEach(function (chord) {
+      var tick = Math.round(chord.offset / unit);
+      if (tick > 0) {
+        var onto = [tick - 1, tick + 1].filter(function (candidate) { return candidate > 0 && candidate <= total - 3 && ticks.indexOf(candidate) >= 0 && ticks.indexOf(tick) < 0; })[0];
+        if (onto !== undefined) tick = onto;
+      }
+      if (!entries.length || tick - entries[entries.length - 1].tick >= 3) entries.push({ tick: tick, chord: chord });
+    });
+    var pushes = chords.filter(function (chord) { return chord.push; }), starts = entries.map(function (entry) { return entry.tick; })
+      .concat(pushes.map(function (chord) { return Math.round(chord.offset / unit); })).sort(function (a, b) { return a - b; });
+    var locked = entries.map(function (entry) {
+      var offset = entry.tick * unit, next = starts.filter(function (tick) { return tick > entry.tick; })[0];
+      return Object.assign({}, entry.chord, { offset: offset, gate: Math.max(.05, ((next === undefined ? duration : next * unit) - offset) * .96) });
+    });
+    return locked.concat(chords.filter(function (chord) { return chord.bed || chord.push; })).sort(function (a, b) { return a.offset - b.offset; });
+  }
   // Stabs: short, sharp, rootless chord hits dropped into gaps in the lead, with the pad easing off just before. They come as figures
   // (offsets in sixteenth-note ticks): a single off-beat STAB, a PAIR (a dotted eighth, an eighth or a quarter apart), a TRIPLE
   // (3+3, 2+4 and so on), or a PICKUP that lands just before the next bar's sam.
@@ -743,11 +813,13 @@
     if (index < 0) { index = 0; scale.forEach(function (n, i) { if (Math.abs(n - pc) < Math.abs(scale[index] - pc)) index = i; }); }
     return index + scale.length * (note >= 12 ? 1 : 0);
   }
-  // Melodic targets: sometimes begin on sam (beat one) with a chord tone, put strong beats on chord tones,
-  // and cadence the phrase onto the tonic or the chord. Passing notes stay free.
+  // Melodic targets: sometimes begin on sam (beat one) with the chord root; strong beats only occasionally take a chord tone, and a note that
+  // lands on one is often moved to a colour tone, so chord tones are the minority and the line leans on tension; a phrase usually cadences
+  // onto the tonic or the chord. Passing notes stay free.
   function landOnTargets(config, events, chord, options, random) {
     var scale = config.raga.notes;
     var tones = chord.classes.filter(function (pc) { return scale.indexOf(pc) >= 0; });
+    var colour = scale.filter(function (pc) { return tones.indexOf(pc) < 0; });
     if (!events.length || !tones.length) return events;
     var duration = config.b * config.beat, result = events.map(function (event) { return Object.assign({}, event); });
     if (options.sam && result[0].offset > 0) {
@@ -762,7 +834,9 @@
       var target = null;
       if (i === cadenceAt && options.cadence) target = nearestPitch(event.note, options.cadence === 'tonic' ? [0] : tones);
       else if (i === 0 && event.offset === 0 && options.sam) target = nearestPitch(event.note, [chord.root]);
-      else if (onBeat && random() < trait(config, 'snap')) target = nearestPitch(event.note, tones);
+      else if (onBeat && random() < trait(config, 'snap') * .05) target = nearestPitch(event.note, tones);
+      // A note that fell on a chord tone is often moved to a colour tone (in the scale, off the chord), more on the strong beats.
+      else if (colour.length && !event.chain && !event.again && tones.indexOf(((event.note % 12) + 12) % 12) >= 0 && random() < (onBeat ? .8 : .58)) target = nearestPitch(event.note, colour);
       return target === null || target === event.note ? event : Object.assign({}, event, { note: target, slideFrom: null });
     }));
   }
@@ -781,7 +855,7 @@
     var temper = .12 * ((trait(config, 'leap') - .5) / 1.5) + .1 * ((trait(config, 'dotted') - 2) / 7) + .08 * ((trait(config, 'slip') - .35) / .55) + .05 * ((trait(config, 'gaps') - .05) / .35);
     return Math.max(0, Math.min(1, improvised + meter + temper));
   }
-  function repeatChance(config) { return Math.min(.85, trait(config, 'recall') + .4 * craziness(config)); }
+  function repeatChance(config) { return Math.min(.88, trait(config, 'recall') * 1.4 + .26 + .4 * craziness(config)); }
   function degreeNote(config, degree) {
     var scale = config.raga.notes, top = scale.length * 2 - 1, d = Math.max(0, Math.min(top, degree));
     return scale[d % scale.length] + 12 * Math.floor(d / scale.length);
@@ -792,8 +866,8 @@
   // A returning motif: usually exact, sometimes with a new ending, sometimes one scale step over (a sequence).
   function varyRepeat(config, events, random) {
     var roll = random();
-    if (roll < .6) return events.map(function (event) { return Object.assign({}, event); });
-    if (roll < .85) {
+    if (roll < .67) return events.map(function (event) { return Object.assign({}, event); });
+    if (roll < .84) {
       var copy = events.map(function (event) { return Object.assign({}, event); }), count = Math.min(copy.length, 1 + Math.floor(random() * 2));
       for (var i = copy.length - count; i < copy.length; i++) {
         copy[i].note = degreeNote(config, noteDegree(config, copy[i].note) + (random() < .5 ? -1 : 1) * (1 + Math.floor(random() * 2))); copy[i].slideFrom = null;
@@ -886,10 +960,10 @@
     return out;
   }
   // A bar holds about 2.5 notes a second at most (3.2 after a thin bar): re-strikes, chains and ornaments fill only the room left.
-  function noteBudget(config, dense) { return Math.max(4, Math.round(config.b * config.beat * (dense ? 3.2 : 2.5))); }
+  function noteBudget(config, dense) { return Math.max(4, Math.round(config.b * config.beat * (config.berserk ? 5 : dense ? 3.2 : 2.5))); }
   function addRepeats(config, events, random, room) {
     var unit = config.quarterBeat / 4, duration = config.b * config.beat, out = [];
-    var chance = Math.min(.45, .03 + trait(config, 'repeat') * .04), added = 0;
+    var chance = Math.min(.5, .04 + trait(config, 'repeat') * .05), added = 0;
     events.forEach(function (event, i) {
       var next = events[i + 1], span = Math.round(((next ? next.offset : duration) - event.offset) / unit);
       if (span < 3 || added >= room || random() >= chance) { out.push(event); return; }
@@ -967,20 +1041,29 @@
   //   trill    rapid alternation with the upper neighbour on a long note
   // On top of these the whole bar can be shaped as a crescendo, a decrescendo or a swell (loud in the middle).
   // This is the last stage, so ornaments follow the final pitches; they are marked `orn` and every pitch is in the scale.
-  var melodyTechniques = { slide: 2, scoop: 1, fall: 1, vibrato: 1.4, swell: 1, staccato: .8, legato: 1, accent: 1, grace: 1, mordent: .45, trill: .3 };
+  // doit: the note lifts at its end; bend: a blues-style quarter or half tone creeping up into the note; meend: a long glide from the previous note
+  // (up to an octave); octave: the note itself leaps an octave (up from the low half of the range, down from the high); leap: the note jumps a fifth, sixth, seventh, octave or ninth (counted in the raga's own degrees, up or down, across the octave) and the next note steps back the other way, as a singer recovers from a leap; octaveRun: that leap carries on for the next two to four notes, so the line moves up or down an octave and stays there for a phrase; dropin: sliding down into the note from above; gamak: a wide, heavy shake; turn: a quick up-down figure leading in.
+  var melodyTechniques = { slide: 2, scoop: 1, fall: 1, vibrato: 1.4, swell: 1, staccato: .8, legato: 1, accent: 1, grace: 1, mordent: .45, trill: .3,
+    doit: .9, bend: 1.1, meend: 1.4, dropin: .9, gamak: .8, turn: .5, octave: 1.4, octaveRun: 1, leap: 2.2 };
   function expressMelody(config, events, random) {
     var quarter = config.quarterBeat, u32 = quarter / 8, duration = config.b * config.beat;
-    var amount = trait(config, 'ornament'), table = config.character && config.character.techniques;
+    var base = trait(config, 'ornament'), amount = base > 0 ? Math.min(.9, base * 2.6 + .3) : 0, table = config.character && config.character.techniques;
     var shape = random() < trait(config, 'shaping') ? weightedChoice(['crescendo', 'decrescendo', 'swell'], function (name) { return name === 'swell' ? 1 : 1.4; }, random) : 'flat';
     var factor = function (p) { return shape === 'crescendo' ? .62 + .38 * p : shape === 'decrescendo' ? 1 - .38 * p : shape === 'swell' ? .66 + .34 * Math.sin(Math.PI * p) : 1; };
     var neighbour = function (note, direction) { return degreeNote(config, noteDegree(config, note) + direction); };
-    var out = [], previousMain = null, room = Math.max(0, noteBudget(config, false) - events.length);
+    var out = [], previousMain = null, carry = null, recover = null, room = Math.max(0, noteBudget(config, false) - events.length);
     events.forEach(function (event, i) {
       var e = Object.assign({}, event);
+      if (carry && carry.left > 0 && !e.again && !e.chain && !e.orn && e.note + carry.by >= 0 && e.note + carry.by <= 23) { e.note += carry.by; e.slideFrom = null; carry.left--; }
+      if (recover && !e.again && !e.chain && !e.orn) {
+        var back = degreeNote(config, noteDegree(config, recover.from) + recover.dir * (1 + Math.floor(random() * 2)));
+        if (back >= 0 && back <= 23) { e.note = back; e.slideFrom = null; }
+        recover = null;
+      }
       e.strength = Math.max(.15, Math.min(1, e.strength * factor(Math.min(1, e.offset / duration))));
       if (e.again || e.chain || e.orn || random() >= amount) { out.push(e); if (!e.again && !e.chain && !e.orn) previousMain = e; return; }
       var next = events[i + 1], span = (next ? next.offset : duration) - e.offset, original = e.gate, options = [];
-      var add = function (name, ok) { if (ok) options.push([name, melodyTechniques[name] * (table ? table[name] : 1)]); };
+      var add = function (name, ok) { if (ok) options.push([name, melodyTechniques[name] * (table && table[name] !== undefined ? table[name] : 1)]); };
       var jump = previousMain ? Math.abs(e.note - previousMain.note) : 0;
       add('slide', previousMain && jump > 0 && jump <= 7 && (e.slideFrom === null || e.slideFrom === undefined));
       add('scoop', (e.slideFrom === null || e.slideFrom === undefined) && (!previousMain || span >= quarter * .9));
@@ -993,12 +1076,43 @@
       add('grace', room >= 1 && e.offset >= .1 && (!out.length || out[out.length - 1].offset < e.offset - .09));
       add('mordent', room >= 2 && original >= u32 * 6 && span >= u32 * 6);
       add('trill', room >= 3 && original >= quarter * .8 && span >= quarter * .8);
+      var unslid = e.slideFrom === null || e.slideFrom === undefined;
+      add('doit', original >= .22 && span >= quarter * .9);
+      add('bend', unslid && original >= .2);
+      add('meend', unslid && previousMain && jump >= 3 && jump <= 12 && original >= .3);
+      add('dropin', unslid && (!previousMain || span >= quarter * .9));
+      add('gamak', original >= .3);
+      var otherOctave = e.note + 12 <= 23 && e.note < 12 ? 12 : e.note - 12 >= 0 ? -12 : 0;
+      add('octave', otherOctave !== 0);
+      var leaps = [];
+      [1, -1].forEach(function (dir) {
+        var size = 4 + Math.floor(random() * 5), target = degreeNote(config, noteDegree(config, e.note) + dir * size);
+        if (target >= 0 && target <= 23 && (!previousMain || Math.abs(target - previousMain.note) <= 16)) leaps.push({ note: target, dir: dir });
+      });
+      var leapTo = leaps.length ? leaps[Math.floor(random() * leaps.length)] : null;
+      add('leap', !!leapTo && !!next && !next.again && !next.chain);
+      add('octaveRun', otherOctave !== 0 && !!next && !next.again && !next.chain);
+      add('turn', room >= 3 && e.offset >= .3 && (!out.length || out[out.length - 1].offset < e.offset - .3));
       var technique = weightedChoice(options, function (entry) { return entry[1]; }, random)[0];
       e.technique = technique;
-      room -= technique === 'grace' ? 1 : technique === 'mordent' ? 2 : technique === 'trill' ? Math.max(3, Math.floor(Math.min(original * .6, .32) / (u32 * 1.3))) : 0;
+      room -= technique === 'grace' ? 1 : technique === 'mordent' ? 2 : technique === 'turn' ? 3 : technique === 'trill' ? Math.max(3, Math.floor(Math.min(original * .6, .32) / (u32 * 1.3))) : 0;
       if (technique === 'slide') { e.slideFrom = previousMain.note; e.glide = .06 + random() * .1; }
       else if (technique === 'scoop') { e.slideFrom = e.note - (2 + (random() < .4 ? 1 : 0)); e.glide = .08 + random() * .06; }
       else if (technique === 'fall') e.fall = 2 + Math.floor(random() * 3);
+      else if (technique === 'octave') e.note += otherOctave;
+      else if (technique === 'leap') { e.note = leapTo.note; e.slideFrom = null; recover = { from: leapTo.note, dir: -leapTo.dir }; }
+      else if (technique === 'octaveRun') { e.note += otherOctave; carry = { by: otherOctave, left: 1 + Math.floor(random() * 3) }; }
+      else if (technique === 'doit') e.fall = -(2 + Math.floor(random() * 4));
+      else if (technique === 'bend') { e.slideFrom = e.note - (random() < .5 ? .5 : 1); e.glide = .12 + random() * .1; }
+      else if (technique === 'meend') { e.slideFrom = previousMain.note; e.glide = Math.min(.18 + random() * .22, original * .8); }
+      else if (technique === 'dropin') { e.slideFrom = e.note + 2 + Math.floor(random() * 4); e.glide = .08 + random() * .1; }
+      else if (technique === 'gamak') { e.vibrato = 35 + random() * 30; e.vibratoDelay = .05; }
+      else if (technique === 'turn') {
+        var t = Math.max(.04, Math.min(.055, u32 * 1.2));
+        [neighbour(e.note, 1), e.note, neighbour(e.note, -1)].forEach(function (pitch, k) {
+          out.push({ offset: e.offset - (3 - k) * t, note: pitch, gate: t * .9, strength: e.strength * .5, slideFrom: null, voice: e.voice, orn: true });
+        });
+      }
       else if (technique === 'vibrato') { e.vibrato = 12 + random() * 14; e.vibratoDelay = .12; }
       else if (technique === 'swell') { e.attack = .1 + random() * .14; }
       else if (technique === 'staccato') e.gate = Math.max(.05, Math.min(original, quarter * .22));
@@ -1042,12 +1156,24 @@
   // Every chord is built from the raga's own degrees, but not always in thirds: triads and sevenths, suspended
   // seconds and fourths, quartal stacks, an added ninth or sixth. Each has 3 or 4 notes. Roots are chosen by
   // function (tonic, fourth, fifth favored; fourth/fifth or stepwise motion preferred) and voice leading stays close.
-  var chordColours = { triad: [0, 2, 4], seventh: [0, 2, 4, 6], sus2: [0, 1, 4], sus4: [0, 3, 4], quartal: [0, 3, 6], quartalFour: [0, 3, 6, 9], add9: [0, 2, 4, 8], sixth: [0, 2, 4, 5] };
-  var colourWeights = { triad: 3, seventh: 2, sus2: 1.4, sus4: 1.4, quartal: 1.3, quartalFour: .8, add9: 1.2, sixth: 1 };
+  var chordColours = { triad: [0, 2, 4], seventh: [0, 2, 4, 6], sus2: [0, 1, 4], sus4: [0, 3, 4], quartal: [0, 3, 6], quartalFour: [0, 3, 6, 9], add9: [0, 2, 4, 8], sixth: [0, 2, 4, 5], shell: [0, 2, 6], sevenSus: [0, 3, 4, 6] };
+  // Triads, sevenths, sixths and added ninths carry most of the weight: suspended and quartal stacks are rare colours, not the default.
+  var colourWeights = { triad: 4, seventh: 3, sixth: 1.4, add9: 1.2, shell: 1.2, sevenSus: .8, sus4: .7, sus2: .5, quartal: .25, quartalFour: .12 };
+  // How chord-like a stack sounds, from its semitones above the root: a third and a fifth make a chord, a suspended fourth or second a softer
+  // one; a semitone cluster is the odd one out. The scale decides what a shape really spells, so a colour is weighed on its actual root.
+  function chordSound(semitones) {
+    var set = semitones.map(function (s) { return ((s % 12) + 12) % 12; }), has = function (n) { return set.indexOf(n) >= 0; }, score = 0;
+    if (has(3) || has(4)) score += 1.6;
+    if (has(7)) score += 1.6; else if (has(6) || has(8)) score += .4;
+    if (has(10) || has(11)) score += .4;
+    if (!(has(3) || has(4)) && (has(5) || has(2))) score += .7;
+    var sorted = set.slice().sort(function (a, b) { return a - b; });
+    for (var i = 1; i < sorted.length; i++) if (sorted[i] - sorted[i - 1] === 1) score -= 1.6;
+    if (sorted[sorted.length - 1] - sorted[0] === 11) score -= 1.6;
+    return Math.exp(score * .55);
+  }
   function chooseHarmony(config, previous, anchor, random) {
     var scale = config.raga.notes;
-    var colour = weightedChoice(Object.keys(chordColours), function (name) { return colourWeights[name] * (config.character && config.character.colours ? config.character.colours[name] : 1) * (previous && previous.colour === name ? .4 : 1); }, random);
-    var shape = chordColours[colour], count = shape.length;
     var previousPc = previous ? ((previous.rootPc + previous.tonicRoot - config.root) % 12 + 12) % 12 : null;
     var root = weightedChoice(scale.map(function (_, i) { return i; }), function (i) {
       var pc = scale[i], weight = pc === 0 ? 4 : pc === 7 ? 3 : pc === 5 ? 2.5 : (pc === 3 || pc === 4) ? 2 : (pc === 8 || pc === 9) ? 1.5 : 1;
@@ -1057,6 +1183,11 @@
       }
       return weight;
     }, random);
+    var colour = weightedChoice(Object.keys(chordColours), function (name) {
+      var semitones = chordColours[name].map(function (offset) { var at = root + offset; return scale[at % scale.length] + 12 * Math.floor(at / scale.length) - scale[root]; });
+      return colourWeights[name] * (config.character && config.character.colours ? config.character.colours[name] : 1) * (previous && previous.colour === name ? .4 : 1) * chordSound(semitones);
+    }, random);
+    var shape = chordColours[colour], count = shape.length;
     var tones = [];
     for (var k = 0; k < count; k++) { var index = root + shape[k]; tones.push(scale[index % scale.length] + 12 * Math.floor(index / scale.length)); }
     tones.sort(function (a, b) { return a - b; });
@@ -1071,10 +1202,17 @@
         if (cost < bestCost) { bestCost = cost; best = candidate; }
       }
     }
-    // Keep one low foundation; lift the other voices out of the muddy low-mid cluster.
+    // Close position in the middle of the range: the chord sits together as one colour (the bass takes the root below), instead of an open
+    // spread of bare fifths and tenths. Voices stay at least a tone apart and above the tonic's register.
     var open = (best || tones).slice();
+    while (open[0] < -3) open = open.map(function (note) { return note + 12; });
     for (var i = 1; i < open.length; i++) {
-      while (open[i] < 0 || open[i] - open[i - 1] < (i === 1 ? 7 : 3)) open[i] += 12;
+      while (open[i] < 0 || open[i] - open[i - 1] < 2) open[i] += 12;
+    }
+    // Close position, or now and then open (the second voice up an octave), so the chords are not always one tight cluster.
+    if (open.length >= 3 && random() < .4) {
+      var wide = open.slice(); wide[1] += 12; wide.sort(function (a, b) { return a - b; });
+      if (wide[wide.length - 1] <= 19 && wide.every(function (note, n) { return !n || note - wide[n - 1] >= 2; })) open = wide;
     }
     return { notes: open, rootIndex: root, rootPc: scale[root], tonicRoot: config.root, colour: colour };
   }
@@ -1096,18 +1234,36 @@
       return note;
     }
     var tones = [low(pedal - config.root)].concat(harmony.notes.map(low));
+    tones = tones.filter(function (note, index) { return tones.indexOf(note) === index; });   // the root once, not twice
     var random = phraseRandom((config.seed || 1) + cycle * 3571);
     // The bass favours the root, then the fifth, over the other chord tones.
-    var pickTone = function () { return weightedChoice(tones, function (note, index) { return index === 0 ? 3 : (((note - tones[0]) % 12) + 12) % 12 === 7 ? 2.2 : 1; }, random); };
+    var pickTone = function () { return weightedChoice(tones, function (note, index) { return index === 0 ? 2.2 : (((note - tones[0]) % 12) + 12) % 12 === 7 ? 2 : 1.6; }, random); };
     var scale = config.raga.notes;
     var neighbour = function (note, direction) {
       var index = scale.indexOf(((note % 12) + 12) % 12);
       return index < 0 ? note : low(scale[(index + direction + scale.length) % scale.length]);
     };
+    // The chord's own tones in the bass's range, low to high: passing notes and chains step through these (a chord-tone walk) rather than
+    // through the scale, so the bass keeps following the chord while it moves.
+    var ladder = [];
+    tones.forEach(function (note) {
+      [note - 12, note, note + 12].forEach(function (candidate) {
+        var hertz = config.tonic * Math.pow(2, candidate / 12);
+        if (hertz >= 45 && hertz <= 140 && ladder.indexOf(candidate) < 0) ladder.push(candidate);
+      });
+    });
+    ladder.sort(function (a, b) { return a - b; });
+    var chordStep = function (note, direction) {
+      var at = ladder.indexOf(note);
+      if (at < 0) return neighbour(note, direction);
+      var to = at + direction;
+      if (to < 0 || to >= ladder.length) to = at - direction;
+      return ladder[to] === undefined ? note : ladder[to];
+    };
     var kicks = drums ? drums.filter(function (hit) { return hit.voice === 'kick'; }).sort(function (a, b) { return a.offset - b.offset; }) : [], locked = kicks.length > 0;
     var selected = (locked ? kicks : attacks).filter(function (attack, i) { return i === 0 || random() < (locked ? .28 + attack.strength * .36 : .15 + attack.strength * .4); }).slice(0, locked ? Math.max(2, Math.min(4, Math.round(config.b * config.beat * 1.2))) : 4);
     var events = selected.map(function (attack, i) {
-      return { offset: attack.offset, note: i === 0 && random() < .7 ? tones[0] : pickTone(),
+      return { offset: attack.offset, note: i === 0 && random() < .6 ? tones[0] : pickTone(),
         strength: locked ? Math.min(.95, .5 + attack.strength * .4) : (i === 0 ? .88 : .72), clipped: i > 0 && random() < .25, kick: locked };
     });
     if (locked) {
@@ -1138,7 +1294,7 @@
         var tick = free[Math.floor(random() * free.length)]; taken.push(tick);
         var before = events.filter(function (event) { return event.offset < tick * unit; }), previous = before.length ? before[before.length - 1].note : tones[0];
         var kind = weightedChoice(['pass', 'octave', 'ghost'], function (name) { return name === 'pass' ? 3 : 1.5; }, random), note = previous;
-        if (kind === 'pass') note = neighbour(previous, random() < .5 ? 1 : -1);
+        if (kind === 'pass') note = random() < .8 ? chordStep(previous, random() < .5 ? 1 : -1) : neighbour(previous, random() < .5 ? 1 : -1);
         else if (kind === 'octave') {
           var hertz = function (semitones) { return config.tonic * Math.pow(2, semitones / 12); };
           note = hertz(previous + 12) <= 140 ? previous + 12 : hertz(previous - 12) >= 45 ? previous - 12 : previous;
@@ -1175,8 +1331,9 @@
         var holder = events[widest], upcoming = events[widest + 1], cursor = holder.offset + (widestSpan - tail) * unit32;
         var way = upcoming ? (upcoming.note > holder.note ? 1 : upcoming.note < holder.note ? -1 : (random() < .5 ? 1 : -1)) : (random() < .5 ? 1 : -1), walker = holder.note;
         holder.chainHead = true;
+        var chordWalk = random() < .75;
         pattern.forEach(function (length, k) {
-          walker = neighbour(walker, way);
+          walker = chordWalk ? chordStep(walker, way) : neighbour(walker, way);
           events.push({ offset: cursor, note: walker, strength: k ? .5 : .62, clipped: true, chain: true, length: length });
           cursor += length * unit32;
         });
@@ -1259,7 +1416,9 @@
   // Four ways to comp, each smooth: HOLD (one to three long chords), SWELL (one or two slow-blooming chords),
   // PUMP (a soft sustained chord on every beat or two, like harmonium bellows) and ARP (one chord tone per hit,
   // rolling up, down or both, each ringing on). PUMP and ARP are quiet beds under the lead.
-  var chordGestures = { hold: 4.5, pump: .6, arp: .8, swell: 1.6 };
+  // CHOP (short hits on the offbeat, a skank) and PUSH (the chord lands a sixteenth or an eighth before a bass attack and rings into it) are
+  // the syncopated ways to comp; they are the usual choice, with the long gestures as contrast.
+  var chordGestures = { hold: 2.2, pump: .5, arp: .7, swell: .9, chop: 3, push: 2.8 };
   function chooseGesture(config, random, avoid) {
     var table = config.character && config.character.gestures;
     return weightedChoice(Object.keys(chordGestures).filter(function (name) { return name !== avoid; }), function (name) { return chordGestures[name] * (table ? table[name] : 1); }, random);
@@ -1271,7 +1430,7 @@
     return step % length;
   }
   // A reply (`answering`) usually takes a different gesture and rhythm from the call, so the harmony converses too.
-  function harmonyPhrases(config, riff, pattern, answering) {
+  function harmonyPhrases(config, riff, pattern, answering, groove) {
     pattern = pattern || { placement: Math.random(), answer: Math.random() };
     var duration = config.b * config.beat, unit = config.quarterBeat / 4, total = Math.round(duration / unit), beatTicks = Math.max(1, Math.round(config.beat / unit));
     var random = phraseRandom(Math.floor(pattern.placement * 4294967296) ^ Math.floor(pattern.answer * 2147483647));
@@ -1282,6 +1441,31 @@
         var step = beatTicks * Math.ceil(4 / beatTicks) * (random() < .4 ? 2 : 1), first = random() < trait(config, 'pad') ? 0 : 2;
         ticks = []; for (var t = first; t <= total - 3; t += step) ticks.push(t);
         hits = ticks.map(function (tick, i) { return { tick: tick, strength: [.8, .5, .62, .5][i % 4], role: 'pad', bed: true }; });
+      } else if (kind === 'chop') {
+        // Offbeat chops: short hits on the 'and' of the beat, a dotted eighth or more apart, some beats skipped so the pattern syncopates.
+        // A soft chord on sam sustains underneath when the pad trait says so.
+        var every = Math.ceil(3 / beatTicks), half = Math.max(1, Math.round(beatTicks / 2)), slots = [];
+        for (var cb = 0; cb * beatTicks + half <= total - 3; cb += every) slots.push(cb * beatTicks + half);
+        ticks = slots.filter(function (tick, n) { return random() < (n === 0 ? .85 : .72); }).slice(0, 5);
+        if (!ticks.length) ticks = [slots.length ? slots[Math.floor(random() * slots.length)] : half];
+        hits = ticks.map(function (tick, n) { return { tick: tick, strength: [.74, .56, .66, .5, .6][n % 5], role: 'chop', bed: true, sharp: true, reach: 1.7 }; });
+        if (random() < trait(config, 'pad')) {
+          var clear = hits.filter(function (hit) { return hit.tick >= 3; });   // a chop right on top of the sam chord would crowd it
+          if (clear.length) { hits = clear; hits.unshift({ tick: 0, strength: .8, role: 'pad', bed: true, reach: total }); }
+        }
+      } else if (kind === 'push') {
+        // Anticipations: the chord lands just before a bass (or riff) attack and rings into it, so the harmony leans forward against the bass.
+        var source = groove && groove.bass && groove.bass.length ? groove.bass : Array.isArray(riff) ? riff : [], withPad = random() < trait(config, 'pad');
+        ticks = withPad ? [0] : [];
+        source.map(function (event) { return Math.round(event.offset / unit); }).filter(function (tick) { return tick > 3; }).forEach(function (tick) {
+          var early = tick - (random() < .6 ? 1 : 2);
+          if (early >= 3 && early <= total - 3 && ticks.length < 4 && ticks.every(function (t) { return Math.abs(t - early) >= 3; })) ticks.push(early);
+        });
+        if (ticks.length < 2) { var fallback = Math.max(3, Math.round(total * .5) - 1); if (ticks.every(function (t) { return Math.abs(t - fallback) >= 3; })) ticks.push(fallback); }
+        ticks.sort(function (a, b) { return a - b; });
+        hits = ticks.map(function (tick, n) { return { tick: tick, strength: tick === 0 ? 1 : .86 - .05 * n, role: tick === 0 ? 'pad' : 'answer', push: tick > 0 }; });
+        // Never silent on sam: without a full chord there, a soft one blooms in underneath the first push.
+        if (hits[0].tick > 0) hits.unshift({ tick: 0, strength: .5, role: 'pad', swell: true });
       } else if (kind === 'arp') {
         var spacing = weightedChoice([3, 4, 6], function (n) { return n === 4 ? 3 : n === 3 ? 2 : 1; }, random), start = random() < .6 ? 0 : spacing;
         var mode = weightedChoice(['up', 'down', 'updown'], function (m) { return m === 'updown' ? 1.4 : 1; }, random);
@@ -1318,6 +1502,8 @@
         articulation: hit.swell ? 'swell' : 'sustained', strum: hit.bed ? 0 : random() < trait(config, 'sweep') ? .09 + random() * .07 : .012 + random() * .03, strumDown: random() < .35 };
       Object.assign(out, technique);
       if (hit.bed) out.bed = true;
+      if (hit.sharp) out.articulation = 'sharp';
+      if (hit.push) out.push = true;
       if (hit.tone !== undefined) { out.tone = hit.tone; out.arpMode = hit.arpMode; }
       out.gesture = gesture;
       return out;
@@ -1344,8 +1530,10 @@
       strength = Math.min(1, strength);
       var offset = Math.min(beats * config.beat - .005, position * config.beat + (!exact && voice === 'snare' ? .012 : 0));
       var existing = hits.find(function (h) { return h.voice === voice && Math.abs(h.offset - offset) < .001; });
-      if (existing) existing.strength = Math.max(existing.strength, strength);
-      else hits.push({ voice: voice, offset: offset, strength: strength });
+      if (existing) { existing.strength = Math.max(existing.strength, strength); return existing; }
+      var stroke = { voice: voice, offset: offset, strength: strength };
+      hits.push(stroke);
+      return stroke;
     }
     if (poly) {
       // Keep both mathematical pulse trains, but orchestrate A as a grouped phrase.
@@ -1369,6 +1557,15 @@
         hit('snare', i, i === 0 ? .8 : .35 + random() * .3, true);
         hits[hits.length - 1].lane = 'B';
       }
+      // Fills: a polyrhythm bar sometimes ends with a short run of snare and toms that rolls into the next bar. The two pulse trains keep
+      // their exact places; the fill carries no lane, so it never counts as either.
+      if (random() < (solo ? .6 : .32)) {
+        var runLength = 3 + Math.floor(random() * 4), sixteenth = config.quarterBeat / config.beat / 4;
+        for (var k = 0; k < runLength; k++) {
+          var lastStroke = k === runLength - 1;
+          hit(lastStroke || k % 2 ? 'tom' : 'snare', beats - (runLength - k) * sixteenth, lastStroke ? .75 : .3 + .4 * k / runLength, true);
+        }
+      }
     } else {
       riffBar(config, cycle, riff).forEach(function (attack) { hit('kick', attack.offset / config.beat, attack.strength * .6, true); });
       var cursor = 0;
@@ -1381,7 +1578,10 @@
       });
       // Eighth-note clock; compound meters already count in eighths.
       var subdivisions = config.rhythm.denominator === 8 ? 1 : 2;
-      for (var i = 0; i < beats * subdivisions; i++) hit('hat', i / subdivisions + (subdivisions === 2 && i % 2 ? riff.swing : 0), i % subdivisions ? .32 : .48, true);
+      for (var i = 0; i < beats * subdivisions; i++) {
+        var accent = (config.rhythm.accents && config.rhythm.accents[Math.floor(i / subdivisions)]) || .45;
+        hit('hat', i / subdivisions + (subdivisions === 2 && i % 2 ? riff.swing : 0), i % subdivisions ? .3 : .3 + .45 * accent, true);
+      }
       if (random() < (solo ? .55 : .18)) {
         var fillCount = 1 + Math.floor(random() * 4), fillUnit = config.quarterBeat / config.beat / 4;
         for (var fill = fillCount; fill > 0; fill--) hit(random() < .6 ? 'tom' : 'snare', beats - fill * fillUnit, .4 + random() * .25, true);
@@ -1430,16 +1630,62 @@
           if (h.voice === 'kick') return starts.some(function (start) { return Math.abs(h.offset - start * config.beat) < .001; });
           return h.voice === 'snare' ? random() < .6 : false;
         });
+      } else if (style === 'boombap') {
+        // Boom-bap: swung eighths, a kick that bounces off the 'and' before each backbeat, an open hat to close the bar.
+        hits = hits.filter(function (h) { return h.voice !== 'hat' && h.voice !== 'tom'; });
+        starts.forEach(function (start, g) {
+          var length = config.rhythm.groups[g];
+          if (length >= 3 && random() < .6) hit('kick', start + length - 1.5, .68, true);
+        });
+        if (random() < .5) hit('kick', beats - .5, .55, true);
+        var swung = config.rhythm.denominator === 8 ? 0 : (riff.swing || .14);
+        for (var b4 = 0; b4 < beats; b4++) {
+          hit('hat', b4, starts.indexOf(b4) >= 0 ? .62 : .46, true);
+          hit('hat', b4 + .5 + swung, .26 + random() * .08, true);
+        }
+        var closer = hit('hat', beats - .5 + swung, .5, true);
+        if (closer && random() < .5) closer.open = true;
+      } else if (style === 'djent') {
+        // Polymetric chug: the kicks follow the riff in double-kick bursts while hat and snare keep a steady four-beat backbone
+        // that runs on across bar lines, so it drifts against the bar and the ear hears two meters at once.
+        var chugs = hits.filter(function (h) { return h.voice === 'kick'; });
+        hits = chugs.slice();
+        chugs.forEach(function (kick) {
+          var bursts = random() < .55 ? 1 + Math.floor(random() * 2) : 0;
+          for (var j2 = 1; j2 <= bursts; j2++) hit('kick', kick.offset / config.beat + j2 * fine, .5 + random() * .15, true);
+        });
+        for (var b5 = 0; b5 < beats; b5++) {
+          var phase = (cycle * beats + b5) % 4;
+          var clock = hit('hat', b5, phase === 0 ? .8 : .5, true);
+          if (phase === 0) clock.open = true;
+          if (config.rhythm.denominator === 4) hit('hat', b5 + .5, .26, true);
+          if (phase === 2) hit('snare', b5, 1, true);
+        }
       }
       // Ghost notes and touch variation keep any style from sounding mechanical.
       for (var gb = 0; gb < beats; gb++) {
-        if (style !== 'sparse' && random() < trait(config, 'ghosts')) hit('snare', gb + (1 + Math.floor(random() * (perBeat - 1 || 1))) * fine, .12 + random() * .08, true);
+        if (style !== 'sparse' && style !== 'djent' && random() < trait(config, 'ghosts')) hit('snare', gb + (1 + Math.floor(random() * (perBeat - 1 || 1))) * fine, .12 + random() * .08, true);
       }
       hits.forEach(function (h) { h.strength = Math.min(1, h.strength * (.92 + random() * .08)); });
     }
     return hits.sort(function (a, b) { return a.offset - b.offset; });
   }
-  var drumStyles = ['groove', 'half-time', 'ride', 'rolling', 'dholak', 'syncopated', 'sparse'];
+  // Every combination (groove, kit, chord timbre, riff, key and scale) now holds this many times longer than it first did, so each can be enjoyed.
+  var pace = 3;
+  // The lead has moods. Mostly it plays; now and then it drops out for a long stretch so the drums, bass and harmony can be heard on
+  // their own, and sometimes it goes berserk over them. Each mood lasts a good while.
+  function nextMelodyMood(previous, random) {
+    var table = previous === 'normal' ? [['off', 3], ['berserk', 2.2], ['normal', .6]] : [['normal', 4], [previous === 'off' ? 'berserk' : 'off', 1]];
+    var mood = weightedChoice(table, function (entry) { return entry[1]; }, random)[0];
+    return { mood: mood, bars: mood === 'normal' ? 18 + Math.floor(random() * 15) : mood === 'off' ? 10 + Math.floor(random() * 9) : 10 + Math.floor(random() * 7) };
+  }
+  // Berserk: the lead's own habits pushed to their limits (leaping, dotted, ornamented, barely pausing, no motif to come back to).
+  // Everything stays in the scale and the other parts are untouched.
+  function berserkOf(config) {
+    var wild = { leap: 2.6, repeat: 1, dotted: 8, gaps: .02, slip: .9, snap: .35, sam: .15, cadence: .15, recall: .08, flourish: .75, ornament: .6, shaping: .8, expression: .85 };
+    return Object.assign({}, config, { berserk: true, character: Object.assign({}, config.character, wild) });
+  }
+  var drumStyles = ['groove', 'half-time', 'ride', 'rolling', 'dholak', 'syncopated', 'sparse', 'boombap', 'djent'];
   // Two styles can share a bar: each beat takes its strokes from one or the other, so grooves mix mid-bar.
   function composeDrums(config, cycle, random, riff, solo, style, blend) {
     var main = composeDrumLayer(config, cycle, random, riff, solo, style);
@@ -1454,7 +1700,7 @@
   // The ride is picked much less often than the other styles, but once chosen it holds as long as any of them.
   function chooseDrumStyle(previous, random, table) {
     var style = weightedChoice(drumStyles.filter(function (name) { return name !== previous; }), function (name) { var weight = table ? table[name] : 1; return name === 'ride' ? .6 * Math.min(1, weight) : weight; }, random);
-    return { style: style, bars: 12 + Math.floor(random() * 7) };
+    return { style: style, bars: Math.round((12 + Math.floor(random() * 7)) * pace) };
   }
 
   // Sample scheduled notes against the audio clock, never the scheduling-ahead clock.
@@ -1515,18 +1761,44 @@
     var matrix = multiply(toRGB, multiply(rotate, toYIQ));
     for (var i = 0; i < 9; i++) out[i] = matrix[i];
   }
-  // Inner ring: composed lead attacks. Outer ring: the steady percussion meter.
+  // Inner ring: the bass notes. Then, going out: composed lead attacks, harmony chords, and the drums: every stroke is drawn where it
+  // falls, and each drum has its own mark (kick: filled dot, tom: ring, snare: diamond, hat: tick or open ring, ride: cross), over a faint beat grid.
   (function () {
-    var canvas = document.getElementById('raag-canvas'), ctx = canvas.getContext('2d');
+    var canvas = document.getElementById('raag-canvas'), ctx = canvas.getContext('2d'), panel = document.getElementById('raag-panel');
     var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     var config = raagSession, bars = [], playing = false, audioTime = 0, raf = 0;
-    var fg = '', fgAt = 0, idleConfig = null, idleOffsets = [], beatRing = { key: '', offsets: [] }, centreText = { key: '' };
-    var swars = {0: 'Sa', 1: 'Re♭', 2: 'Re', 3: 'Ga♭', 4: 'Ga', 5: 'Ma', 6: 'Ma♯', 7: 'Pa', 8: 'Dha♭', 9: 'Dha', 10: 'Ni♭', 11: 'Ni'};
-    var swarCurrent = document.getElementById('swar-current');
+    var idleConfig = null, idleOffsets = [], idleDrums = [], beatRing = { key: '', offsets: [] }, audioStamp = 0;
+    var swars = {0: 'सा', 1: 'रे♭', 2: 'रे', 3: 'ग♭', 4: 'ग', 5: 'म', 6: 'म♯', 7: 'प', 8: 'ध♭', 9: 'ध', 10: 'नि♭', 11: 'नि'};
+    var statusNode = document.getElementById('raag-status'), lastStatus = null, titleNode = document.getElementById('raag-title'), lastTitle = '';
+    // Plain-language names for the status line; the tempo comes from the scene, the rest from the bar being played.
+    var plainNames = { boombap: 'boom-bap', bonham: 'big room' };
+    function statusLines(bar) {
+      var plain = function (key) { return plainNames[key] || key; }, gesture = bar.chords && bar.chords.length ? bar.chords[0].gesture : '';
+      return Math.round(60 / bar.config.quarterBeat) + ' BPM' + (bar.drumStyle ? ' · ' + plain(bar.drumStyle) : '') + (bar.percussionTexture ? ' · ' + plain(bar.percussionTexture) : '')
+        + '\nLead: ' + (bar.melodyMood || 'normal') + (gesture ? ' · Chords: ' + gesture : '');
+    }
+    // A ring can be picked out (hover, focus, or press a legend chip to pin it); the others dim so it can be followed on its own.
+    var highlight = null, hovered = null, pinned = null;
+    // Colours: the picture's own hues once the scene has harvested them (eased in as the artwork changes), otherwise the standard set. Every
+    // mark has a thin dark outline so it stays visible on any artwork, and W makes the marks a little bolder at this size.
+    var pal = { bass: '#e07a8f', melody: '#70c8d8', harmony: '#b494e6', drums: '#e6ad67', tom: '#e8895a', ride: '#d4a72c' };
+    var shades = null, lastShade = 0, halo = 'rgba(6, 10, 16, .75)', W = 1.9;
+    function easeShades(now) {
+      var target = window.ringPalette;
+      if (!target) return;
+      var rate = 1 - Math.exp(-(lastShade ? Math.min(.1, (now - lastShade) / 1000) : 0) / 1.2);
+      lastShade = now;
+      if (!shades) { shades = {}; Object.keys(target).forEach(function (name) { shades[name] = target[name].slice(); }); }
+      Object.keys(target).forEach(function (name) {
+        for (var c = 0; c < 3; c++) shades[name][c] += (target[name][c] - shades[name][c]) * rate;
+        pal[name] = 'rgb(' + Math.round(shades[name][0]) + ',' + Math.round(shades[name][1]) + ',' + Math.round(shades[name][2]) + ')';
+      });
+    }
+    function dim(ring) { return highlight && highlight !== ring ? .2 : 1; }
     var scaleNodes = [];
     function showConfig(value) {
       config = value;
-      canvas.parentElement.setAttribute('aria-label', config.raga.name + ' · ' + config.rhythm.displayLabel + ' rhythm visualizer');
+      panel.setAttribute('aria-label', config.raga.name + ' · ' + config.rhythm.displayLabel + ' rhythm visualizer');
       var scaleRow = document.getElementById('raag-scale');
       scaleRow.textContent = '';
       scaleNodes = config.raga.notes.map(function (note, index) {
@@ -1540,11 +1812,41 @@
     window.raagViz = {
       bars: bars,
       setPlaying: function (value) { cancelAnimationFrame(raf); playing = value; window.musicVisual = value ? musicVisualAt(bars, audioTime) : null; draw(); },
-      setTime: function (value) { audioTime = value; window.musicVisual = playing ? musicVisualAt(bars, audioTime) : null; if (reducedMotion.matches) draw(); }
+      setTime: function (value) { audioTime = value; audioStamp = performance.now(); window.musicVisual = playing ? musicVisualAt(bars, audioTime) : null; if (reducedMotion.matches) draw(); }
     };
+    // Pick a ring out on the visualizer itself: hover it (or press it) and the others dim while its name takes the centre; press it again, or
+    // press the centre, to let go. The arrow keys do the same from the keyboard.
+    var ringInfo = { bass: ['Bass', 'low notes'], melody: ['Lead', 'melody'], harmony: ['Chords', 'harmony'], drums: ['Drums', 'percussion'] };
+    function ringAt(event) {
+      var box = canvas.getBoundingClientRect(), side = box.width - 2 * (parseFloat(getComputedStyle(canvas).paddingLeft) || 0);   // the drawing sits inside the padding
+      var r = Math.hypot((event.clientX - box.left - box.width / 2) / side * 260, (event.clientY - box.top - box.height / 2) / side * 260);
+      return r < 17 || r > 130 ? null : r < 36 ? 'bass' : r < 52 ? 'melody' : r < 68 ? 'harmony' : 'drums';
+    }
+    // The title under the rings: the raga and the rhythm, or the name of the ring being picked out, in that ring's colour.
+    function renderTitle() {
+      var info = highlight ? ringInfo[highlight] : null;
+      var text = info ? info[0] + ' · ' + info[1] : config.raga.label + ' · ' + config.rhythm.displayLabel, colour = info ? pal[highlight] : '';
+      if (text + colour === lastTitle) return;
+      lastTitle = text + colour; titleNode.textContent = text; titleNode.style.color = colour;
+    }
+    function pickOut() { highlight = hovered || pinned; canvas.style.cursor = hovered ? 'pointer' : ''; renderTitle(); if (!playing || reducedMotion.matches) draw(); }
+    canvas.addEventListener('pointermove', function (event) {
+      if (event.pointerType === 'touch') return;
+      var ring = ringAt(event);
+      if (ring !== hovered) { hovered = ring; pickOut(); }
+    });
+    canvas.addEventListener('pointerleave', function () { hovered = null; pickOut(); });
+    canvas.addEventListener('click', function (event) { var ring = ringAt(event); pinned = ring && ring !== pinned ? ring : null; hovered = event.pointerType === 'touch' ? null : hovered; pickOut(); });
+    canvas.addEventListener('keydown', function (event) {
+      var order = [null, 'bass', 'melody', 'harmony', 'drums'];
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      pinned = order[(order.indexOf(pinned) + (event.key === 'ArrowRight' ? 1 : order.length - 1)) % order.length];
+      event.preventDefault(); pickOut();
+    });
     function draw() {
       var now = performance.now();
-            var size = canvas.width, scale = size / 176, cx = 88, cy = 88;
+      easeShades(now);
+            var size = canvas.width, scale = size / 260, cx = 130, cy = 130;
       ctx.clearRect(0, 0, size, size);
       ctx.save(); ctx.scale(scale, scale);
       var bar = null;
@@ -1560,68 +1862,105 @@
       var event = bar && noteIndex >= 0 ? bar.events[noteIndex] : null;
       var soundingNow = active && event && elapsed < event.offset + event.gate;
       var currentNote = soundingNow ? event.note : null;
+      var bassEvents = bar && bar.bass ? bar.bass : [], bassIndex = -1;
+      bassEvents.forEach(function (note, i) { if (elapsed >= note.offset) bassIndex = i; });
+      var bassSounding = active && bassIndex >= 0 && elapsed < bassEvents[bassIndex].offset + bassEvents[bassIndex].gate;
       var readoutKey = (bar ? bar.start : '') + ':' + noteIndex + ':' + !!soundingNow + ':' + active;
       if (readoutKey !== lastReadout) {
         lastReadout = readoutKey;
-        swarCurrent.textContent = soundingNow ? swars[currentNote % 12] + (currentNote >= 12 ? ' ↑' : '') : active ? 'Rest' : 'Press Play';
+        renderTitle();
+        var status = bar ? statusLines(bar) : '';
+        if (status !== lastStatus) { lastStatus = status; statusNode.textContent = status; }
         scaleNodes.forEach(function (node, i) {
           var selected = bar && bar.triad.indexOf(config.raga.notes[i]) >= 0;
           var sounding = soundingNow && currentNote % 12 === config.raga.notes[i];
           node.className = (selected ? 'fragment ' : '') + (sounding ? 'sounding' : '');
         });
       }
-      if (!fgAt || performance.now() - fgAt > 300) { fg = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim(); fgAt = performance.now(); }
+      // God rays: a faint fan of tapered rays sweeps from the centre once round per bar, trailing behind the moment in the bar (a few rays lean
+      // just ahead of it), each a little different in length and shimmering. They are drawn first, so the notes sit on top, and they run
+      // smoothly between the audio-clock updates.
+      if (active) {
+        var sweep = Math.min(duration, elapsed + (reducedMotion.matches ? 0 : Math.min(.08, (now - audioStamp) / 1000)));
+        var rayAngle = -Math.PI / 2 + sweep / duration * Math.PI * 2, shimmer = reducedMotion.matches ? 0 : now / 1000;
+        var warm = shades ? 'rgb(' + shades.melody.map(function (v) { return Math.round(v + (255 - v) * .5); }).join(',') + ')' : '#ffe9a8';   // the picture's lead hue, lightened
+        for (var k = -3; k <= (reducedMotion.matches ? 0 : 14); k++) {
+          var spread = (((k * 7 + 5) % 11) + 11) % 11 / 10, reach = 97 + 30 * spread;
+          var strength = k < 0 ? .09 * (1 + k / 4) : .3 * Math.pow(1 - k / 15, 2), wobble = .75 + .25 * Math.sin(shimmer * 2.6 + k * 1.9);
+          var heading = rayAngle - k * .06, half = .012 + .02 * spread * (k >= 0 ? 1 : .6);
+          ctx.beginPath(); ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(heading - half) * reach, cy + Math.sin(heading - half) * reach);
+          ctx.lineTo(cx + Math.cos(heading + half) * reach, cy + Math.sin(heading + half) * reach);
+          ctx.globalAlpha = strength * wobble; ctx.fillStyle = warm; ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
       ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(140, 140, 140, .3)';
-      [46, 60, 74].forEach(function (radius) {
-        ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
-      });
-      if (!bar && idleConfig !== config) { idleConfig = config; idleOffsets = composeCycle(config, 0).events.map(function (e) { return e.offset; }); }
+      if (!bar && idleConfig !== config) { idleConfig = config; idleOffsets = composeCycle(config, 0).events.map(function (e) { return e.offset; }); idleDrums = composeDrums(config, 0, Math.random, null, false, 'groove'); }
       // A bar's onsets and the beat ring only change per bar or per meter: build them once, not every frame.
       var melodyOffsets = bar ? (bar.ringOffsets || (bar.ringOffsets = bar.events.map(function (e) { return e.offset; }))) : idleOffsets;
       var beatKey = config.b + ':' + config.beat;
       if (beatRing.key !== beatKey) beatRing = { key: beatKey, offsets: Array.from({ length: config.b }, function (_, i) { return i * config.beat; }) };
+      var bassOffsets = bar ? (bar.bassOffsets || (bar.bassOffsets = bassEvents.map(function (e) { return e.offset; }))) : [];
       [
-        { offsets: melodyOffsets, radius: 46, index: soundingNow ? noteIndex : -1, color: '#70c8d8' },
-        { offsets: beatRing.offsets, radius: 74, index: active ? beatIndex : -1, color: '#e6ad67' }
+        { name: 'bass', offsets: bassOffsets, radius: 28, index: bassSounding ? bassIndex : -1, color: pal.bass },
+        { name: 'melody', offsets: melodyOffsets, radius: 44, index: soundingNow ? noteIndex : -1, color: pal.melody }
       ].forEach(function (ring) {
         ring.offsets.forEach(function (offset, n) {
           var angle = -Math.PI / 2 + offset / duration * Math.PI * 2;
           var lit = active && n === ring.index;
-          var pulse = reducedMotion.matches ? 0 : 5 * Math.exp(-Math.max(0, elapsed - offset) * 18);
-          var baseSize = ring.radius === 74 ? 2.5 + config.rhythm.accents[n] * 2 : 3;
+          var pulse = reducedMotion.matches ? 0 : 5 * W * Math.exp(-Math.max(0, elapsed - offset) * 18);
+          var baseSize = 3 * W;
           ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * ring.radius, cy + Math.sin(angle) * ring.radius, lit ? baseSize + pulse : baseSize, 0, Math.PI * 2);
-          ctx.globalAlpha = lit ? 1 : .45; ctx.fillStyle = ring.color; ctx.fill();
+          ctx.globalAlpha = (lit ? 1 : .6) * dim(ring.name); ctx.lineWidth = 1.8; ctx.strokeStyle = halo; ctx.stroke(); ctx.fillStyle = ring.color; ctx.fill();
         });
       });
-      // Middle ring: harmony. A pad chord is an arc for as long as it rings; a stab is a single dot.
+      // Middle ring: harmony. Every chord is a dot where it enters (a stab a smaller one), and a long chord stays lit while it rings.
       (bar && bar.chords ? bar.chords : []).forEach(function (chord) {
         var from = -Math.PI / 2 + chord.offset / duration * Math.PI * 2;
-        var to = -Math.PI / 2 + Math.min(duration, chord.offset + chord.gate) / duration * Math.PI * 2;
         var sounding = active && elapsed >= chord.offset && elapsed < chord.offset + chord.gate, stab = chord.articulation === 'sharp' || chord.tone !== undefined;
-        if (!stab) {
-          ctx.beginPath(); ctx.arc(cx, cy, 60, from, to);
-          ctx.lineWidth = sounding ? 3.5 : 2.5; ctx.strokeStyle = '#b494e6'; ctx.globalAlpha = sounding ? .85 : .32; ctx.stroke();
+        var bloom = reducedMotion.matches || !sounding ? 0 : 4 * W * Math.exp(-Math.max(0, elapsed - chord.offset) * 14);
+        ctx.beginPath(); ctx.arc(cx + Math.cos(from) * 60, cy + Math.sin(from) * 60, (stab ? 2.2 : 3.2) * W + bloom, 0, Math.PI * 2);
+        ctx.globalAlpha = (sounding ? 1 : .7) * dim('harmony'); ctx.lineWidth = 1.8; ctx.strokeStyle = halo; ctx.stroke(); ctx.fillStyle = pal.harmony; ctx.fill();
+      });
+      // Outer band: the drums. Kick and tom sit on the inner lane, the snare in the middle, hats and ride on the outer lane;
+      // a stroke's size follows its strength and it swells as it sounds. The beat grid is a row of small marks at the edge.
+      ctx.lineCap = 'round';
+      beatRing.offsets.forEach(function (offset, n) {
+        var angle = -Math.PI / 2 + offset / duration * Math.PI * 2, now = active && n === beatIndex;
+        ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * 123, cy + Math.sin(angle) * 123, ((.9 + config.rhythm.accents[n] * .7) + (now ? .5 : 0)) * W, 0, Math.PI * 2);
+        ctx.globalAlpha = (now ? 1 : .45) * dim('drums'); ctx.fillStyle = '#9aa5ad'; ctx.fill();
+      });
+      (bar ? bar.drums || [] : idleDrums).forEach(function (hit) {
+        var angle = -Math.PI / 2 + hit.offset / duration * Math.PI * 2, age = elapsed - hit.offset, voice = hit.voice, s = hit.strength;
+        var lit = active && age >= 0 && age < .22, swell = reducedMotion.matches || !lit ? 0 : 3 * W * Math.exp(-age * 18);
+        var radius = voice === 'kick' || voice === 'tom' ? 76 : voice === 'snare' ? 92 : 108;
+        var cos = Math.cos(angle), sin = Math.sin(angle), x = cx + cos * radius, y = cy + sin * radius;
+        ctx.globalAlpha = (lit ? 1 : .65) * dim('drums');
+        if (voice === 'kick') {
+          ctx.beginPath(); ctx.arc(x, y, (2.2 + 2.2 * s) * W + swell, 0, Math.PI * 2); ctx.lineWidth = 1.8; ctx.strokeStyle = halo; ctx.stroke(); ctx.fillStyle = pal.drums; ctx.fill();
+        } else if (voice === 'tom') {
+          ctx.beginPath(); ctx.arc(x, y, (2.2 + 1.4 * s) * W + swell, 0, Math.PI * 2);
+          ctx.lineWidth = 1.6 * W + 2.4; ctx.strokeStyle = halo; ctx.stroke(); ctx.lineWidth = 1.6 * W; ctx.strokeStyle = pal.tom; ctx.stroke();
+        } else if (voice === 'snare') {
+          var half = (2.1 + 1.7 * s) * W + swell;
+          ctx.beginPath(); ctx.moveTo(x, y - half); ctx.lineTo(x + half, y); ctx.lineTo(x, y + half); ctx.lineTo(x - half, y); ctx.lineTo(x, y - half);
+          ctx.lineWidth = 1.8; ctx.strokeStyle = halo; ctx.stroke(); ctx.fillStyle = '#f2f0ea'; ctx.fill();
+        } else if (voice === 'hat' && hit.open) {
+          ctx.beginPath(); ctx.arc(x, y, (2.2 + s) * W + swell, 0, Math.PI * 2);
+          ctx.lineWidth = 1.2 * W + 2.4; ctx.strokeStyle = halo; ctx.stroke(); ctx.lineWidth = 1.2 * W; ctx.strokeStyle = '#8d9aa5'; ctx.stroke();
+        } else if (voice === 'hat') {
+          var reach = (1.2 + 1.6 * s) * W + swell;
+          ctx.beginPath(); ctx.moveTo(cx + cos * (radius - reach), cy + sin * (radius - reach)); ctx.lineTo(cx + cos * (radius + reach), cy + sin * (radius + reach));
+          ctx.lineWidth = 1.4 * W + 2.4; ctx.strokeStyle = halo; ctx.stroke(); ctx.lineWidth = 1.4 * W; ctx.strokeStyle = '#8d9aa5'; ctx.stroke();
+        } else {
+          var arm = (1.8 + 1.2 * s) * W + swell;
+          ctx.beginPath(); ctx.moveTo(x - arm, y - arm); ctx.lineTo(x + arm, y + arm); ctx.moveTo(x - arm, y + arm); ctx.lineTo(x + arm, y - arm);
+          ctx.lineWidth = 1.3 * W + 2.4; ctx.strokeStyle = halo; ctx.stroke(); ctx.lineWidth = 1.3 * W; ctx.strokeStyle = pal.ride; ctx.stroke();
         }
-        var bloom = reducedMotion.matches || !sounding ? 0 : 4 * Math.exp(-Math.max(0, elapsed - chord.offset) * 14);
-        ctx.beginPath(); ctx.arc(cx + Math.cos(from) * 60, cy + Math.sin(from) * 60, (stab ? 2.2 : 3.2) + bloom, 0, Math.PI * 2);
-        ctx.globalAlpha = sounding ? 1 : .55; ctx.fillStyle = '#b494e6'; ctx.fill();
       });
       ctx.lineWidth = 1;
-      ctx.globalAlpha = 1; ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      // The centre text always fits inside the inner ring: each line shrinks until it does (measured once per scene, not per frame).
-      var shownName = config.raga.name.replace(/^Improvised /, ''), textKey = config.raga.label + '|' + shownName + '|' + config.rhythm.displayLabel;
-      if (centreText.key !== textKey) {
-        var fit = function (text, weight, size, family) {
-          var px = size;
-          for (; px > 5; px -= .5) { ctx.font = weight + ' ' + px + 'px ' + family; if (ctx.measureText(text).width <= 70) break; }
-          return weight + ' ' + px + 'px ' + family;
-        };
-        centreText = { key: textKey, label: fit(config.raga.label, 600, 14, 'sans-serif'), name: fit(shownName, 400, 9, 'Inter, sans-serif'), rhythm: fit(config.rhythm.displayLabel, 400, 8, 'Inter, sans-serif') };
-      }
-      ctx.font = centreText.label; ctx.fillText(config.raga.label, cx, cy - 11);
-      ctx.font = centreText.name; ctx.fillText(shownName, cx, cy + 6);
-      ctx.font = centreText.rhythm; ctx.fillText(config.rhythm.displayLabel, cx, cy + 21);
+      ctx.globalAlpha = 1;
       ctx.restore();
       if (playing && !reducedMotion.matches) raf = requestAnimationFrame(draw);
     }
@@ -1748,6 +2087,44 @@
     var running = false, raf = 0, flow = 0, ringFlow = 0;
     var ready = false, musicRequested = !!window.musicWanted;
     var focalImages = [document.getElementById('gaze-current'), document.getElementById('gaze-next')];
+    // Colours from the picture: the rings take their hues from the artwork in the middle of the screen (its most colourful, well-separated
+    // hues), made light and saturated so they stand out against the dark glow behind them. The visualizer eases to the new colours as the
+    // artwork changes.
+    var swatch = document.createElement('canvas'); swatch.width = swatch.height = 40;
+    var swatchContext = swatch.getContext('2d', { willReadFrequently: true });
+    function lightHue(hue, lightness) {
+      var chroma = (1 - Math.abs(2 * lightness - 1)) * .85, turn = ((hue % 360) + 360) % 360, x = chroma * (1 - Math.abs((turn / 60) % 2 - 1)), m = lightness - chroma / 2;
+      return [[chroma, x, 0], [x, chroma, 0], [0, chroma, x], [0, x, chroma], [x, 0, chroma], [chroma, 0, x]][Math.floor(turn / 60)].map(function (v) { return Math.round((v + m) * 255); });
+    }
+    function harvestPalette(image) {
+      try {
+        var w = image.naturalWidth, h = image.naturalHeight;
+        if (!w || !h) return;
+        var side = Math.min(w, h) * .6;   // the middle of the picture is what sits behind the rings
+        swatchContext.clearRect(0, 0, 40, 40);
+        swatchContext.drawImage(image, (w - side) / 2, (h - side) / 2, side, side, 0, 0, 40, 40);
+        var data = swatchContext.getImageData(0, 0, 40, 40).data, bins = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var i = 0; i < data.length; i += 4) {
+          if (data[i + 3] < 128) continue;
+          var r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255, top = Math.max(r, g, b), chroma = top - Math.min(r, g, b);
+          if (chroma < .12 || top < .12) continue;   // greys and near-blacks have no hue to speak of
+          var hue = (top === r ? ((g - b) / chroma + 6) % 6 : top === g ? (b - r) / chroma + 2 : (r - g) / chroma + 4) * 60;
+          bins[Math.floor(hue / 30) % 12] += chroma * (.5 + top);
+        }
+        var hues = [], order = bins.map(function (_, k) { return k; }).sort(function (a, b) { return bins[b] - bins[a]; });
+        order.forEach(function (k) {
+          var centre = k * 30 + 15;
+          if (hues.length < 4 && bins[k] > 0 && hues.every(function (other) { var gap = Math.abs(other - centre) % 360; return Math.min(gap, 360 - gap) >= 50; })) hues.push(centre);
+        });
+        if (!hues.length) return;   // a grey picture keeps the colours the rings already have
+        [150, 60, 210].forEach(function (turn) { if (hues.length < 4) hues.push((hues[0] + turn) % 360); });
+        window.ringPalette = { melody: lightHue(hues[0], .7), harmony: lightHue(hues[1], .72), bass: lightHue(hues[2], .7), drums: lightHue(hues[3], .68), tom: lightHue(hues[3] - 28, .64), ride: lightHue(hues[3] + 28, .76) };
+      } catch (e) { /* keep the colours the rings already have */ }
+    }
+    focalImages.forEach(function (image) {
+      image.addEventListener('load', function () { harvestPalette(image); });
+      if (image.complete && image.naturalWidth) harvestPalette(image);
+    });
     var focalAspects = { 'images/mandala-center.svg': 1 };
     function setFocalSource(image, path) {
       image.style.setProperty('--art-aspect', focalAspects[path] || 1);
@@ -1755,10 +2132,11 @@
       image.src = path;
     }
     var focalPaths = ['images/mandala-center.svg'], focalIndex = 0, focalFront = 0;
-    var focalAge = 0, focalHold = 30, focalBlend = -1, focalHue = 0, lastFilter = '';
+    var focalAge = 0, focalHold = 30, focalBlend = -1, focalHue = 0, lastFilter = '', focalSkip = false, focalSpan = 12;
     function updateFocal(dt) {
       focalAge += dt;
-      if (focalBlend < 0 && focalAge >= focalHold && focalPaths.length > 1) {
+      if (focalBlend < 0 && (focalAge >= focalHold || focalSkip) && focalPaths.length > 1) {
+        focalSkip = false;
         focalIndex = (focalIndex + 1 + Math.floor(Math.random() * (focalPaths.length - 1))) % focalPaths.length;
         setFocalSource(focalImages[1 - focalFront], focalPaths[focalIndex]);
         focalBlend = 0;
@@ -1766,11 +2144,11 @@
       }
       if (focalBlend >= 0) {
         // Audio/playback time drives the dissolve, so Stop freezes even a transition.
-        focalBlend = Math.min(1, focalBlend + dt / 12);
+        focalBlend = Math.min(1, focalBlend + dt / focalSpan);
         var eased = focalBlend * focalBlend * (3 - 2 * focalBlend);
         focalImages[focalFront].style.opacity = 1 - eased;
         focalImages[1 - focalFront].style.opacity = eased;
-        if (focalBlend >= 1) { focalFront = 1 - focalFront; focalBlend = -1; }
+        if (focalBlend >= 1) { focalFront = 1 - focalFront; focalBlend = -1; if (!focalSkip) focalSpan = 12; }
       }
       var delta = Math.atan2(Math.sin(musicState[3] - focalHue), Math.cos(musicState[3] - focalHue));
       focalHue += delta * (1 - Math.exp(-dt / 6));
@@ -1822,6 +2200,8 @@
       cancelAnimationFrame(raf);
       if (on && ready) play();
     }
+    // The shuffle button asks for the next artwork now: it dissolves in a few seconds instead of twelve.
+    window.nextArtwork = function () { focalSkip = true; focalSpan = 4; };
     window.setMusicBackground = function (on) {
       musicRequested = on;
       canvas.style.opacity = ready ? '1' : '0';
@@ -1947,12 +2327,25 @@
     var phraseBar = 0, conversation = null, rhythmRiff = null, bassUntil = 0;
     var previousBarProfile = null;
     var harmonyWorld = raagSession, bassPedal = raagSession.root;
-    var changeIn = 12 + Math.floor(Math.random() * 7), pendingMeter = false, melodyMotif = null, recentChanges = [], melodyVoices = null, voiceConversations = 0;
-    var chordVoices = { pad: 'wood', answer: 'hollow', stab: 'swarmandal' }, rhythmTextureBars = 0, riffBarsLeft = 3;
-    var barsUntilBreak = 10 + Math.floor(Math.random() * 7), melodyBreakLeft = 0, previousMelodyBreak = false;
+    var changeIn = Math.round((12 + Math.floor(Math.random() * 7)) * pace), pendingMeter = false, melodyMotif = null, recentChanges = [], melodyVoices = null, voiceConversations = 0;
+    var chordVoices = { pad: 'organ', answer: 'epiano', stab: 'swarmandal', chop: 'clav' }, rhythmTextureBars = 0, riffBarsLeft = 3;
+    var melodyMood = 'normal', melodyMoodBars = 16 + Math.floor(Math.random() * 9), previousMelodyBreak = false;
     var drumStyle = 'groove', drumStyleBars = 0, bandLean = 0, leadDegree = null;
-    var percussionTexture = 'skin', percussionTextureBars = 0;
-    var ac, master, output, harmonyBus, bassBus, warmWave, drumNoise, drumBus, tanpuraBus, analyser, analyserData, timer, visualTimer, next = 0, on = false;
+    // One thing at a time: the drums, the chord gesture and the effects each change on their own schedule, but after any of them changes the others
+    // wait `quiet` bars (four) before they may; only the melody is free to move meanwhile. A chord gesture (its rhythm and answer) holds for a long stretch.
+    var quiet = 0, chordPatternBars = 0, heldChordPattern = null;
+    var percussionTexture = null, percussionTextureBars = 0;
+    // Audition aid: index.html#kit=electro&style=djent pins the drum kit and style (kits: boombap, bonham, electro); #tape=off bypasses the lo-fi chain, #fx=off the random filters and glitches on the lead.
+    var forced = {};
+    String(window.location && window.location.hash || '').replace(/[#&](kit|style|tape|fx)=([\w-]+)/g, function (_, key, value) { forced[key] = value; return ''; });
+    var echoShare = .4;   // the share of chord hits the tape echo catches
+    var leadGlitchShare = .05, leadFilterChance = .1, bassGlitchShare = .07, bassFilterChance = .08, filterUntil = { lead: 0, bass: 0 };   // the share of notes that get a glitch; the chance per bar of a filter move
+    // Where each voice's random filters may land (Hz): a highpass thins it, a lowpass muffles it, a band is both; the bass stays in the low end.
+    var leadRanges = { high: [450, 2250], low: [380, 1880], centre: [700, 2200], resonance: [1.8, 3.5] }, bassRanges = { high: [50, 200], low: [140, 600], centre: [90, 300], resonance: [1.2, 2.5] };
+    var wildWindows = [], wildTime = { lead: [0, 0, 0], chords: [0, 0, 0], bass: [0, 0, 0] };   // stretches claimed by the lead's wild effects or the chords' (see claimWild)
+    var echoDivision = .75;   // the echo time in quarter notes: a dotted eighth, now and then another division
+    var echoSurge = 0;   // bars left of a swelling echo (its feedback raised, so the repeats pile up and ring on)
+    var ac, master, output, harmonyBus, bassBus, warmWave, drumNoise, drumBus, drumSend, tanpuraBus, leadFx, bassFx, leadDelay, echoDelay, echoDelayB, echoSend, echoBack, analyser, analyserData, timer, visualTimer, next = 0, on = false;
 
     var suspendTimer = null;
     var fade = { from: 0, to: 0, start: 0, end: 0 };
@@ -1965,6 +2358,53 @@
       }
       var c = ac.createConvolver(); c.buffer = buf; return c;
     }
+    // Tape, the lo-fi character of a tape-based sketchpad (it is meant to be felt more than noticed): a soft saturation, a slow wow, a fast
+    // flutter and a lazy drift (a delay line that wobbles, so the pitch moves a few cents), a gentle roll-off of the highs, a touch of
+    // warmth in the lows, and a faint hiss.
+    function addTape(input, output) {
+      var drive = ac.createWaveShaper(), curve = new Float32Array(2049);
+      for (var i = 0; i < 2049; i++) { var x = i / 1024 - 1; curve[i] = Math.tanh(2.2 * x) / 2.2; }
+      drive.curve = curve; drive.oversample = '2x';
+      var line = ac.createDelay(.05);
+      line.delayTime.value = .015;
+      [[.55, .0006], [6.3, .00004], [.13, .0003]].forEach(function (lfo) {   // [rate in Hz, depth in seconds]: wow, flutter, drift
+        var sway = ac.createOscillator(), depth = ac.createGain();
+        sway.frequency.value = lfo[0]; depth.gain.value = lfo[1]; sway.connect(depth); depth.connect(line.delayTime); sway.start();
+      });
+      var rolloff = ac.createBiquadFilter(), warmth = ac.createBiquadFilter();
+      rolloff.type = 'lowpass'; rolloff.frequency.value = 9500; rolloff.Q.value = .5;
+      warmth.type = 'lowshelf'; warmth.frequency.value = 140; warmth.gain.value = 1.5;
+      var hiss = ac.createBufferSource(), hissTone = ac.createBiquadFilter(), hissLevel = ac.createGain();
+      hiss.buffer = drumNoise; hiss.loop = true; hissTone.type = 'highpass'; hissTone.frequency.value = 3000; hissLevel.gain.value = .0012; hiss.start();
+      input.connect(drive); drive.connect(line); line.connect(rolloff); rolloff.connect(warmth); warmth.connect(output);
+      hiss.connect(hissTone); hissTone.connect(hissLevel); hissLevel.connect(output);
+    }
+    // An effects rack for a voice (the lead's sits between its bus and the presence lift, the bass's between its bus and the mix): a highpass and a lowpass (open until the scheduler moves them at
+    // random), parallel glitch paths that stay silent until a note triggers them (a bit-crusher, a ring modulator, a stuttering repeat),
+    // then a gate (for stutter chops) and a pan.
+    function buildFxRack(input, output) {
+      var fx = {}, mix = ac.createGain(), steps = new Float32Array(2049);
+      fx.hp = ac.createBiquadFilter(); fx.hp.type = 'highpass'; fx.hp.frequency.value = 20; fx.hp.Q.value = .7;
+      fx.lp = ac.createBiquadFilter(); fx.lp.type = 'lowpass'; fx.lp.frequency.value = 18000; fx.lp.Q.value = .7;
+      fx.dry = ac.createGain();
+      for (var i = 0; i < 2049; i++) steps[i] = Math.round((i / 1024 - 1) * 12) / 12;   // about 3.6 bits: harsh
+      var crusher = ac.createWaveShaper(); crusher.curve = steps; fx.crush = ac.createGain(); fx.crush.gain.value = 0;
+      var ringer = ac.createGain(); ringer.gain.value = 0;   // a ring modulator: the signal times a sine, which drives this gain
+      fx.ringOsc = ac.createOscillator(); fx.ringOsc.frequency.value = 200; fx.ringOsc.connect(ringer.gain); fx.ringOsc.start();
+      fx.ring = ac.createGain(); fx.ring.gain.value = 0;
+      var repeatTone = ac.createBiquadFilter(); repeatTone.type = 'lowpass'; repeatTone.frequency.value = 3500;
+      fx.repeatSend = ac.createGain(); fx.repeatSend.gain.value = 0; fx.repeatDelay = ac.createDelay(.5); fx.repeatDelay.delayTime.value = .12;
+      fx.repeatBack = ac.createGain(); fx.repeatBack.gain.value = 0;
+      fx.gate = ac.createGain(); fx.pan = ac.createStereoPanner();
+      input.connect(fx.hp); fx.hp.connect(fx.lp);
+      fx.lp.connect(fx.dry); fx.dry.connect(mix);
+      fx.lp.connect(crusher); crusher.connect(fx.crush); fx.crush.connect(mix);
+      fx.lp.connect(ringer); ringer.connect(fx.ring); fx.ring.connect(mix);
+      fx.lp.connect(fx.repeatSend); fx.repeatSend.connect(fx.repeatDelay); fx.repeatDelay.connect(repeatTone);
+      repeatTone.connect(fx.repeatBack); fx.repeatBack.connect(fx.repeatDelay); repeatTone.connect(mix);
+      mix.connect(fx.gate); fx.gate.connect(fx.pan); fx.pan.connect(output);
+      return fx;
+    }
     function setup() {
       ac = new AC();
       // One rounded harmonic spectrum joins the plucked and sustained voices.
@@ -1975,11 +2415,29 @@
       for (var n = 0; n < noiseData.length; n++) noiseData[n] = Math.random() * 2 - 1;
       master = ac.createGain(); master.gain.value = 0.0354 * Math.pow(10, 12 / 20);
       output = ac.createGain(); output.gain.value = 0;
-      drumBus = ac.createGain(); drumBus.gain.value = 1.25 * Math.pow(10, 3 / 20);
+      drumBus = ac.createGain(); drumBus.gain.value = 1.25 * Math.pow(10, 1.5 / 20);
       var wet = ac.createGain(); wet.gain.value = 0.42;
       var verb = reverb();
-      tanpuraBus = ac.createGain(); tanpuraBus.gain.value = 2 * Math.pow(10, 1.5 / 20);
-      tanpuraBus.connect(master);
+      // The lead sits forward in the mix: 4 dB louder than before, with a little presence (a broad lift around 2.6 kHz) so it cuts through
+      // the chords and drums, even on small speakers. The chords and drums step back a little to make room.
+      tanpuraBus = ac.createGain(); tanpuraBus.gain.value = 2 * Math.pow(10, 5.5 / 20);
+      var presence = ac.createBiquadFilter(); presence.type = 'peaking'; presence.frequency.value = 2600; presence.Q.value = .9; presence.gain.value = 3;
+      // An overdrive on the lead, ahead of its effects: a soft-clipping curve (tanh) that rounds the peaks and adds odd harmonics, blended with the clean
+      // signal so the note keeps its shape, then a lowpass to take the fizz off the top. `leadDrive` is how hard it is pushed (1 is almost clean).
+      var leadDrive = 4, overdrive = ac.createWaveShaper(), curve = new Float32Array(2049), driveIn = ac.createGain(), driveTone = ac.createBiquadFilter(), driveClean = ac.createGain(), driveWet = ac.createGain(), driveOut = ac.createGain();
+      for (var d = 0; d < 2049; d++) curve[d] = Math.tanh((d / 1024 - 1) * leadDrive) / Math.tanh(leadDrive);
+      overdrive.curve = curve; overdrive.oversample = '4x';
+      driveTone.type = 'lowpass'; driveTone.frequency.value = 4800; driveTone.Q.value = .6;
+      driveIn.gain.value = 1.5; driveClean.gain.value = .6; driveWet.gain.value = .4;
+      tanpuraBus.connect(driveClean); driveClean.connect(driveOut);
+      tanpuraBus.connect(driveIn); driveIn.connect(overdrive); overdrive.connect(driveTone); driveTone.connect(driveWet); driveWet.connect(driveOut);
+      leadFx = buildFxRack(driveOut, presence); presence.connect(master);
+      // A little delay on the lead so the line sings: one soft repeat on a dotted eighth (the time follows the tempo), a second much fainter, each
+      // darker than the last, joining the lead ahead of its reverb.
+      var delaySend = ac.createGain(), delayTone = ac.createBiquadFilter(), delayBack = ac.createGain();
+      leadDelay = ac.createDelay(2); leadDelay.delayTime.value = .4;
+      delaySend.gain.value = .22; delayTone.type = 'lowpass'; delayTone.frequency.value = 2600; delayBack.gain.value = .3;
+      presence.connect(delaySend); delaySend.connect(leadDelay); leadDelay.connect(delayTone); delayTone.connect(delayBack); delayBack.connect(leadDelay); delayTone.connect(master);
       analyser = ac.createAnalyser();
       analyser.fftSize = 256;
       analyserData = new Uint8Array(analyser.fftSize);
@@ -1992,18 +2450,58 @@
       glue.release.value = .3;
       master.connect(mix);
       var drumDry = ac.createGain(); drumDry.gain.value = master.gain.value;
-      drumBus.connect(drumDry); drumDry.connect(mix);
+      // A little bit-reduction on the drums (a third of the signal, about 6.5 bits) gives them a sampled, lo-fi edge.
+      var tapeOn = forced.tape !== 'off', drumClean = ac.createGain(), drumGrit = ac.createGain(), crusher = ac.createWaveShaper(), steps = new Float32Array(2049);
+      for (var q = 0; q < 2049; q++) steps[q] = Math.round((q / 1024 - 1) * 96) / 96;
+      crusher.curve = steps; drumClean.gain.value = tapeOn ? .7 : 1; drumGrit.gain.value = tapeOn ? .3 : 0;
+      drumBus.connect(drumClean); drumClean.connect(drumDry); drumBus.connect(crusher); crusher.connect(drumGrit); drumGrit.connect(drumDry);
+      drumDry.connect(mix);
       var drumRoom = ac.createGain(); drumRoom.gain.value = .12;
       drumDry.connect(drumRoom); drumRoom.connect(verb);
-      harmonyBus = ac.createGain(); harmonyBus.gain.value = master.gain.value;
+      // Per-stroke room sends carry the same level as the dry path, so a kit's `room` is a plain ratio to its dry sound.
+      drumSend = ac.createGain(); drumSend.gain.value = drumDry.gain.value * drumBus.gain.value; drumSend.connect(verb);
+      harmonyBus = ac.createGain(); harmonyBus.gain.value = master.gain.value * Math.pow(10, -2 / 20);
       harmonyBus.connect(mix);
-      bassBus = ac.createGain(); bassBus.gain.value = master.gain.value * 1.25;
-      bassBus.connect(mix);
+      bassBus = ac.createGain(); bassBus.gain.value = master.gain.value * .8;
+      bassFx = buildFxRack(bassBus, mix);
       var harmonyRoom = ac.createGain(); harmonyRoom.gain.value = .15;
       harmonyBus.connect(harmonyRoom); harmonyRoom.connect(verb);
-      var leadRoom = ac.createGain(); leadRoom.gain.value = .25;
+      var leadRoom = ac.createGain(); leadRoom.gain.value = .4;
       master.connect(leadRoom); leadRoom.connect(verb); verb.connect(wet); wet.connect(mix);
-      mix.connect(glue); glue.connect(analyser); analyser.connect(output); output.connect(ac.destination);
+      // A soft stereo chorus on the chords: two slowly wobbling delays, one to each side, widen them.
+      [[.014, .0035, .27, -.7], [.019, .004, .21, .7]].forEach(function (spec) {   // [delay s, sway s, rate Hz, pan]
+        var line = ac.createDelay(.05), sway = ac.createOscillator(), depth = ac.createGain(), side = ac.createStereoPanner(), level = ac.createGain();
+        line.delayTime.value = spec[0]; sway.frequency.value = spec[2]; depth.gain.value = spec[1]; side.pan.value = spec[3]; level.gain.value = tapeOn ? .22 : 0;
+        sway.connect(depth); depth.connect(line.delayTime); sway.start();
+        harmonyBus.connect(line); line.connect(level); level.connect(side); side.connect(mix);
+      });
+      // A ping-pong tape echo on the chords, for only some of the hits. The send feeds delay A (left); A feeds delay B (right); B feeds back into A,
+      // so the repeats bounce from side to side. Each pass through A is highpassed, darkened by a lowpass and rounded by a soft saturation, so
+      // the repeats get warmer and duller as they go, and both delay lines wobble (wow and flutter), so the repeats waver in pitch like a worn
+      // tape. It is tapped after the chords' own level (harmonyBus), so its return is a true fraction of what the chords play.
+      var echoLow = ac.createBiquadFilter(), echoTone = ac.createBiquadFilter(), echoWarm = ac.createWaveShaper();
+      var echoLeft = ac.createStereoPanner(), echoRight = ac.createStereoPanner(), echoCurve = new Float32Array(2049);
+      echoSend = ac.createGain(); echoBack = ac.createGain(); echoDelay = ac.createDelay(1.5); echoDelayB = ac.createDelay(1.5);
+      echoSend.gain.value = 0;   // closed: the scheduler opens it for the chord hits that get an echo
+      echoDelay.delayTime.value = .375; echoDelayB.delayTime.value = .375; echoBack.gain.value = .5;
+      echoLow.type = 'highpass'; echoLow.frequency.value = 220; echoTone.type = 'lowpass'; echoTone.frequency.value = 2000; echoTone.Q.value = .9;
+      for (var e = 0; e < 2049; e++) { var ex = e / 1024 - 1; echoCurve[e] = Math.tanh(2.5 * ex) / 2.5; }
+      echoWarm.curve = echoCurve; echoWarm.oversample = '2x';
+      echoLeft.pan.value = -.9; echoRight.pan.value = .9;
+      [[.45, .004], [5.7, .0003], [.17, .003]].forEach(function (lfo) {   // [rate in Hz, depth in seconds]: wow, flutter and a lazy drift on both delay lines
+        var sway = ac.createOscillator(), depth = ac.createGain();
+        sway.frequency.value = lfo[0]; depth.gain.value = lfo[1]; sway.connect(depth); depth.connect(echoDelay.delayTime); depth.connect(echoDelayB.delayTime); sway.start();
+      });
+      // The darkening filter slowly opens and closes, so the repeats breathe.
+      var toneSweep = ac.createOscillator(), toneDepth = ac.createGain();
+      toneSweep.frequency.value = .23; toneDepth.gain.value = 900; toneSweep.connect(toneDepth); toneDepth.connect(echoTone.frequency); toneSweep.start();
+      harmonyBus.connect(echoSend); echoSend.connect(echoDelay); echoDelay.connect(echoLow); echoLow.connect(echoTone); echoTone.connect(echoWarm);
+      echoWarm.connect(echoLeft); echoLeft.connect(mix);
+      echoWarm.connect(echoDelayB); echoDelayB.connect(echoRight); echoRight.connect(mix);
+      echoDelayB.connect(echoBack); echoBack.connect(echoDelay);
+      mix.connect(glue);
+      if (tapeOn) addTape(glue, analyser); else glue.connect(analyser);
+      analyser.connect(output); output.connect(ac.destination);
     }
     // Rounded chant-like vowels: audible pitch, soft formants, restrained breath.
     function chant(freq, when, strength, gate, fromFreq, open) {
@@ -2058,6 +2556,7 @@
     function softLead(freq, when, strength, gate, fromFreq, texture, expr) {
       expr = expr || {};
       if (texture === 'bansuri') return fluteTone(freq, when, strength, gate, fromFreq, expr);
+      if (texture === 'glass' || texture === 'santoor') return struckTone(freq, when, strength, gate, fromFreq, texture, expr);
       var tanpura = texture === 'tanpura', raise = lift(freq);
       var duration = Math.max(.12, gate) + .07;
       var env = ac.createGain(), body = ac.createBiquadFilter(), input = ac.createGain();
@@ -2094,6 +2593,38 @@
         return source;
       });
       if (extras.length) made.forEach(function (source) { extras[1].connect(source.detune); });
+    }
+    // Struck voices, bright and high in character (the pitch is whatever the melody plays): GLASS is a glockenspiel or celesta, a few inharmonic
+    // bell partials whose upper ones are gone in a blink; SANTOOR is a hammered dulcimer, a bright harmonic spray struck on a pair of strings
+    // that drift slightly apart, so it shimmers. Low notes get their upper partials lifted so they still sing on small speakers. Same `expr` as above.
+    function struckTone(freq, when, strength, gate, fromFreq, texture, expr) {
+      expr = expr || {};
+      var glass = texture === 'glass', raise = lift(freq);
+      var ratios = glass ? [1, 2.756, 5.404] : [1, 2, 3, 4, 5, 6], levels = glass ? [.7, .55, .3] : [.55, .5, .42, .3, .2, .12], strings = glass ? [0] : [-3, 3];
+      var life = glass ? Math.min(1.1, Math.max(.45, gate * 1.3) + .3) : Math.min(1.3, Math.max(.5, gate * 1.2) + .35), glide = expr.glide || .02;
+      var env = ac.createGain(); env.connect(tanpuraBus);
+      var peak = (glass ? .3 : .27) * strength;
+      env.gain.setValueAtTime(.0001, when);
+      env.gain.exponentialRampToValueAtTime(peak, when + .004);
+      env.gain.exponentialRampToValueAtTime(peak * (glass ? .45 : .35), when + life * .5);
+      env.gain.exponentialRampToValueAtTime(.0001, when + life);
+      var remaining = ratios.length * strings.length;
+      function done() { if (--remaining === 0) env.disconnect(); }
+      ratios.forEach(function (ratio, i) {
+        strings.forEach(function (cents) {
+          var source = ac.createOscillator(), level = ac.createGain(); source.type = 'sine'; source.detune.value = cents;
+          source.frequency.setValueAtTime((fromFreq || freq * 1.004) * ratio, when);
+          source.frequency.exponentialRampToValueAtTime(freq * ratio, when + glide);
+          if (expr.fall) {   // a fall bends the note down over its tail
+            source.frequency.setValueAtTime(freq * ratio, when + Math.max(glide + .02, life * .6));
+            source.frequency.exponentialRampToValueAtTime(freq * ratio * Math.pow(2, -expr.fall / 12), when + life * .96);
+          }
+          level.gain.setValueAtTime(levels[i] * (i ? 1 + 1.5 * raise : 1 - .1 * raise) / strings.length, when);
+          if (i) level.gain.exponentialRampToValueAtTime(.0001, when + life * (glass ? .35 : .6) / (1 + i * .35));   // the upper partials die first
+          source.connect(level); level.connect(env); source.start(when); source.stop(when + life + .02);
+          source.onended = function () { source.disconnect(); level.disconnect(); done(); };
+        });
+      });
     }
     // Bansuri: soft breathy onset, delayed vibrato, a whisper of band-passed air. Same `expr` as above.
     function fluteTone(freq, when, strength, gate, fromFreq, expr) {
@@ -2132,9 +2663,43 @@
       breath.onended = function () { breath.disconnect(); air.disconnect(); puff.disconnect(); done(); };
       lfo.onended = done;
     }
-    // Synthesized tabla-inspired strokes: bayan glide, tuned dayan, and dry finger contact.
-    // Internal role names also drive the corresponding visual movement.
-    function drum(voice, when, strength, tonic, texture) {
+    // Drum kits, tuned to the drone so every kit sits in the key. Each voice is a pitched body plus filtered noise plus a click,
+    // so a kick, a snare and a hat no longer share one recipe. Internal role names (kick, snare, tom, hat, ride) drive the visuals.
+    //   boombap  classic hip-hop: round punchy kick, tight snare in a small room, dusty closed hats
+    //   bonham   big-room rock (Led Zeppelin): deep kick, cracking snare in a huge room, loose open hats, floor toms
+    //   electro  triggered and a little electronic: clicky gated kick, clap snare, short bright hats
+    // `top` is how far above its resting pitch a kick starts (the sweep is the "boom"); `room` is the share sent to the reverb.
+    var kits = {
+      boombap: { kick: { top: 2.4, sweep: .07, decay: .45, click: .22, upper: .3, pitch: 1, room: .04 },
+                 snare: { tone: 1.5, body: .45, decay: .2, noise: .5, sizzle: .2, room: .14 },
+                 hat: { high: 7500, closed: .05, open: .28, level: .32 }, tom: { decay: .38, room: .06 } },
+      bonham: { kick: { top: 1.9, sweep: .1, decay: .62, click: .14, upper: .35, pitch: .92, room: .3 },
+                snare: { tone: 1.35, body: .55, decay: .34, noise: .6, sizzle: .25, room: .75 },
+                hat: { high: 6500, closed: .075, open: .42, level: .3 }, tom: { decay: .6, room: .55 } },
+      electro: { kick: { top: 4.2, sweep: .035, decay: .24, click: .5, upper: .2, pitch: 1.05, room: 0 },
+                 snare: { tone: 1.8, body: .25, decay: .15, noise: .6, sizzle: .3, room: .03, clap: true },
+                 hat: { high: 8500, closed: .03, open: .14, level: .36 }, tom: { decay: .22, room: .02 } }
+    };
+    // A burst of filtered noise that frees itself when it ends.
+    function noiseBurst(when, decay, type, frequency, q, level, dest) {
+      var source = ac.createBufferSource(), filter = ac.createBiquadFilter(), gain = ac.createGain();
+      source.buffer = drumNoise; filter.type = type; filter.frequency.value = frequency; filter.Q.value = q;
+      gain.gain.setValueAtTime(level, when); gain.gain.exponentialRampToValueAtTime(.0001, when + decay);
+      source.connect(filter); filter.connect(gain); gain.connect(dest);
+      source.start(when, Math.random() * .5); source.stop(when + decay + .01);
+      source.onended = function () { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+    }
+    // Send part of a voice to the shared room reverb. The send is freed with the voice.
+    function roomSend(node, level) {
+      if (level < .01) return null;
+      var send = ac.createGain(); send.gain.value = level;
+      node.connect(send); send.connect(drumSend);
+      return send;
+    }
+    function freeWhenDone(owner, nodes) {
+      owner.onended = function () { nodes.forEach(function (node) { if (node) node.disconnect(); }); };
+    }
+    function drum(voice, when, strength, tonic, kitName, open) {
       if (voice === 'ride') {
         // Manjira / temple-bell touch: small tuned sine partials with a short ring.
         var ring = ac.createGain(); ring.connect(drumBus);
@@ -2151,35 +2716,147 @@
         });
         return;
       }
-      var bass = voice === 'kick' || voice === 'tom', muted = voice === 'hat';
-      var fundamental = bass ? tonic * .5 : tonic * 1.5;
-      var duration = (muted ? .065 : bass ? .32 : .24) * (texture === 'wood' ? .65 : texture === 'clay' ? 1.12 : 1);
-      var env = ac.createGain(); env.connect(drumBus);
-      env.gain.setValueAtTime(.0001, when);
-      env.gain.exponentialRampToValueAtTime(strength * (muted ? .22 : .62), when + .003);
-      env.gain.exponentialRampToValueAtTime(.0001, when + duration);
-      (texture === 'clay' ? [1, 1.5, 2.35, 3.8] : texture === 'wood' ? [1, 2.05, 3.1, 4.2] : [1, 2, 3, 4.05]).forEach(function (ratio, i) {
-        var o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine';
-        o.frequency.setValueAtTime(fundamental * ratio * (bass ? 1.35 : 1.015), when);
-        o.frequency.exponentialRampToValueAtTime(fundamental * ratio, when + Math.min(duration * .6, bass ? .14 : .025));
-        g.gain.value = [1, .38, .17, .07][i] * (muted ? .08 : voice === 'snare' ? .42 : 1);
-        o.connect(g); g.connect(env); o.start(when); o.stop(when + duration);
-        o.onended = function () { o.disconnect(); g.disconnect(); };
-      });
-      var contact = ac.createBufferSource(), filter = ac.createBiquadFilter(), tap = ac.createGain();
-      contact.buffer = drumNoise; filter.type = 'bandpass'; filter.frequency.value = muted ? 3000 : voice === 'snare' ? 2200 : 950; filter.Q.value = .7;
-      tap.gain.setValueAtTime((voice === 'snare' ? .32 : muted ? .16 : .1) * strength, when);
-      tap.gain.exponentialRampToValueAtTime(.0001, when + (voice === 'snare' ? .09 : .035));
-      contact.connect(filter); filter.connect(tap); tap.connect(drumBus);
-      contact.start(when, Math.random() * .5); contact.stop(when + (voice === 'snare' ? .1 : .045));
-      contact.onended = function () { contact.disconnect(); filter.disconnect(); tap.disconnect(); };
+      var kit = kits[kitName] || kits.boombap, jitter = 1 + (Math.random() - .5) * .04;   // no two strokes are identical
+      if (voice === 'hat') {
+        // Highpassed noise with a bright sheen; an open hat rings, a closed one ticks. Hats go straight to the bus.
+        var hat = kit.hat, decay = open ? hat.open : hat.closed;
+        noiseBurst(when, decay, 'highpass', hat.high * jitter, .7, hat.level * strength, drumBus);
+        noiseBurst(when, decay * .8, 'bandpass', 9500, 3, hat.level * .6 * strength, drumBus);
+        return;
+      }
+      var out = ac.createGain(), body = ac.createOscillator(), env = ac.createGain(), send, extra = [], span;
+      out.connect(drumBus);
+      env.connect(out); body.connect(env);
+      if (voice === 'kick') {
+        // A pitch sweep down to a tuned thump, an octave-up partial that small speakers can hear, and a beater click.
+        var kick = kit.kick, low = tonic * .5 * kick.pitch * jitter, upper = ac.createOscillator(), upperGain = ac.createGain();
+        span = kick.decay;
+        body.type = 'sine'; upper.type = 'triangle';
+        body.frequency.setValueAtTime(low * kick.top, when); body.frequency.exponentialRampToValueAtTime(low, when + kick.sweep);
+        upper.frequency.setValueAtTime(low * kick.top * 2, when); upper.frequency.exponentialRampToValueAtTime(low * 2, when + kick.sweep);
+        upperGain.gain.value = kick.upper;
+        upper.connect(upperGain); upperGain.connect(env);
+        env.gain.setValueAtTime(.0001, when);
+        env.gain.exponentialRampToValueAtTime(.75 * strength, when + .002);
+        env.gain.exponentialRampToValueAtTime(.0001, when + span);
+        noiseBurst(when, .014, 'highpass', 2200, .7, kick.click * strength, out);
+        upper.start(when); upper.stop(when + span + .02);
+        extra.push(upper, upperGain);
+        send = roomSend(env, kick.room);
+      } else if (voice === 'snare') {
+        // A short tuned body, a mid noise crack and a bright sizzle; electro adds a clap's three quick bursts.
+        var snare = kit.snare, f = tonic * snare.tone * jitter;
+        span = snare.decay;
+        body.type = 'triangle';
+        body.frequency.setValueAtTime(f * 1.4, when); body.frequency.exponentialRampToValueAtTime(f, when + .03);
+        env.gain.setValueAtTime(.0001, when);
+        env.gain.exponentialRampToValueAtTime(snare.body * strength, when + .002);
+        env.gain.exponentialRampToValueAtTime(.0001, when + span * .55);
+        noiseBurst(when, span, 'bandpass', 2200, .8, snare.noise * strength, out);
+        noiseBurst(when, span * .8, 'highpass', 5500, .5, snare.sizzle * strength, out);
+        if (snare.clap) [0, .011, .022].forEach(function (delay) { noiseBurst(when + delay, .012, 'bandpass', 1300, 1, .35 * strength, out); });
+        send = roomSend(out, snare.room);
+      } else {
+        // Toms are tuned (a high one for soft hits, a floor tom for hard ones) and no longer share the kick's pitch.
+        var tom = kit.tom, pitch = tonic * (strength < .5 ? 1.25 : .85) * jitter;
+        span = tom.decay;
+        body.type = 'sine';
+        body.frequency.setValueAtTime(pitch * 1.5, when); body.frequency.exponentialRampToValueAtTime(pitch, when + .09);
+        env.gain.setValueAtTime(.0001, when);
+        env.gain.exponentialRampToValueAtTime(.7 * strength, when + .003);
+        env.gain.exponentialRampToValueAtTime(.0001, when + span);
+        noiseBurst(when, .02, 'bandpass', 1500, 1, .15 * strength, out);
+        send = roomSend(env, tom.room);
+      }
+      body.start(when); body.stop(when + span + .02);
+      freeWhenDone(body, [body, env, out, send].concat(extra));
     }
 
     // The lead's call and reply voices persist across several conversations, so a timbre has time to settle in.
     function pickMelodyVoices() {
-      var textures = ['sitar', 'bansuri', 'tanpura'], call = nextTexture(melodyVoices ? melodyVoices.reply : null, textures, Math.random);
+      var textures = ['sitar', 'bansuri', 'glass', 'santoor'], used = melodyVoices ? [melodyVoices.call, melodyVoices.reply] : [];
+      var call = nextTexture(null, textures.filter(function (voice) { return used.indexOf(voice) < 0; }), Math.random);   // unlike the last call and reply
       melodyVoices = { call: call, reply: nextTexture(call, textures, Math.random) };
-      voiceConversations = 4 + Math.floor(Math.random() * 3);
+      voiceConversations = Math.round((4 + Math.floor(Math.random() * 3)) * pace);
+    }
+    // The wild effects may overlap, but not too much. The lead's filter moves and glitches, the bass's, and the chord echo's dives and swells each claim
+    // the stretch of time they will take. A claim that overlaps another voice is refused if it would push any of the voices involved past 40% of its
+    // own wild time being shared with the others (with a memory of about ninety seconds); it then stays clean. So the voices sometimes go wild
+    // together, but no more than 40% of the time, whichever of them you count.
+    function claimWild(side, from, to) {
+      wildWindows = wildWindows.filter(function (w) { return w.to > ac.currentTime - 1; });
+      var sides = ['lead', 'chords', 'bass'], mine = wildTime[side], sharedWith = {}, shared = 0;
+      var fadeOf = function (t) { return Math.pow(.5, Math.max(0, from - t[2]) / 90); };
+      sides.forEach(function (other) {
+        sharedWith[other] = 0;
+        if (other === side) return;
+        wildWindows.forEach(function (w) { if (w.side === other) sharedWith[other] += Math.max(0, Math.min(to, w.to) - Math.max(from, w.from)); });
+        shared += sharedWith[other];
+      });
+      var myTotal = mine[0] * fadeOf(mine) + (to - from), myShared = mine[1] * fadeOf(mine) + shared;
+      var refused = shared > 0 && myShared > .4 * myTotal;
+      sides.forEach(function (other) {
+        if (other === side || !sharedWith[other]) return;
+        var theirs = wildTime[other];
+        if (theirs[1] * fadeOf(theirs) + sharedWith[other] > .4 * Math.max(theirs[0] * fadeOf(theirs), .001)) refused = true;
+      });
+      if (refused) return false;
+      sides.forEach(function (other) {
+        if (other === side) return;
+        var theirs = wildTime[other], fade = fadeOf(theirs);
+        if (sharedWith[other] || fade !== 1) wildTime[other] = [theirs[0] * fade, theirs[1] * fade + sharedWith[other], Math.max(theirs[2], from)];
+      });
+      wildTime[side] = [myTotal, myShared, Math.max(mine[2], from)];
+      wildWindows.push({ side: side, from: from, to: to });
+      return true;
+    }
+    function glitchSpan(kind, gate) { return kind === 'repeat' ? 1.3 : kind === 'stutter' ? 1.1 : kind === 'dive' ? gate + .2 : Math.max(gate + .3, .9); }
+    // Random filter moves on a voice: a highpass thins it out, a lowpass muffles it, or both close in on a band, for one to three bars, with a
+    // resonant edge now and then; then they open again. They glide there and back.
+    function moveFilters(fx, side, range, t, barLength) {
+      var kind = weightedChoice([['high', 1], ['low', 1], ['band', .8]], function (entry) { return entry[1]; }, Math.random)[0];
+      var at = t + Math.random() * barLength * .5, hold = barLength * (1 + Math.floor(Math.random() * 3)), resonance = Math.random() < .35 ? range.resonance[0] + Math.random() * (range.resonance[1] - range.resonance[0]) : .7;
+      var pick = function (r) { return r[0] + Math.random() * (r[1] - r[0]); }, centre = pick(range.centre);
+      var high = kind === 'band' ? centre * .6 : pick(range.high), low = kind === 'band' ? centre * 1.8 : pick(range.low);
+      if (!claimWild(side, at, at + hold + 1)) return;
+      if (kind !== 'low') {
+        fx.hp.frequency.setTargetAtTime(high, at, .25); fx.hp.Q.setTargetAtTime(resonance, at, .2);
+        fx.hp.frequency.setTargetAtTime(20, at + hold, .5); fx.hp.Q.setTargetAtTime(.7, at + hold, .4);
+      }
+      if (kind !== 'high') {
+        fx.lp.frequency.setTargetAtTime(low, at, .25); fx.lp.Q.setTargetAtTime(resonance, at, .2);
+        fx.lp.frequency.setTargetAtTime(18000, at + hold, .5); fx.lp.Q.setTargetAtTime(.7, at + hold, .4);
+      }
+      filterUntil[side] = at + hold + 1.5; quiet = 4;
+    }
+    // Glitches on a voice. A note picked at random (about one in twenty for the lead, one in fourteen for the bass) gets one of: a stutter (the lead is chopped on and off), a crush (a
+    // burst of harsh bit-reduction), a ring (a burst of metallic ring modulation), a repeat (the note's attack is caught and machine-gunned), a
+    // throw (the note is panned hard to one side) or a dive (the note bends down at its end, handled where the note is played).
+    function chooseGlitch(withThrow) {   // a throw (panned hard to one side) is for the lead; a bass stays in the middle
+      var kinds = [['stutter', 3], ['crush', 2.5], ['ring', 2], ['repeat', 2.5], ['dive', 2]];
+      if (withThrow) kinds.push(['throw', 1.5]);
+      return weightedChoice(kinds, function (entry) { return entry[1]; }, Math.random)[0];
+    }
+    function glitchVoice(fx, kind, t, gate) {
+      var length = Math.min(gate + .12, .8);
+      if (kind === 'stutter') {
+        var count = 6 + Math.floor(Math.random() * 8), width = .035 + Math.random() * .05;
+        for (var i = 0; i < count; i++) fx.gate.gain.setTargetAtTime(i % 2 ? 1 : .03, t + .04 + i * width, .004);
+        fx.gate.gain.setTargetAtTime(1, t + .04 + count * width, .004);
+      } else if (kind === 'crush') {
+        fx.crush.gain.setTargetAtTime(.75, t, .006); fx.dry.gain.setTargetAtTime(.3, t, .006);
+        fx.crush.gain.setTargetAtTime(0, t + length, .05); fx.dry.gain.setTargetAtTime(1, t + length, .05);
+      } else if (kind === 'ring') {
+        fx.ringOsc.frequency.setValueAtTime(70 + Math.random() * 430, t);
+        fx.ring.gain.setTargetAtTime(.8, t, .006); fx.dry.gain.setTargetAtTime(.45, t, .006);
+        fx.ring.gain.setTargetAtTime(0, t + length, .05); fx.dry.gain.setTargetAtTime(1, t + length, .05);
+      } else if (kind === 'repeat') {
+        fx.repeatDelay.delayTime.setValueAtTime(raagSession.quarterBeat / (Math.random() < .5 ? 4 : 8), t);
+        fx.repeatSend.gain.setValueAtTime(1, t); fx.repeatSend.gain.setValueAtTime(0, t + .07);
+        fx.repeatBack.gain.setValueAtTime(.86, t); fx.repeatBack.gain.setTargetAtTime(0, t + .6 + Math.random() * .5, .08);
+      } else if (kind === 'throw') {
+        fx.pan.pan.setTargetAtTime((Math.random() < .5 ? -1 : 1) * (.55 + Math.random() * .4), t, .01); fx.pan.pan.setTargetAtTime(0, t + gate + .1, .08);
+      }
     }
     function schedule() {
       // The lead improvises within each percussion cycle.
@@ -2221,7 +2898,7 @@
             tempoPatch.beat = tempoPatch.quarterBeat * 4 / raagSession.rhythm.denominator;
             raagSession = Object.assign({}, raagSession, tempoPatch);
           } else if (changing === 'meter') pendingMeter = true;
-          changeIn = 12 + Math.floor(Math.random() * 7);
+          changeIn = Math.round((12 + Math.floor(Math.random() * 7)) * pace);
         }
         // A new meter waits for the end of a conversation so no phrase is cut in half.
         if (pendingMeter && (!conversation || conversation.position >= conversation.length * 2)) {
@@ -2237,46 +2914,143 @@
           raagSession.seed = entropy[0];
         }
         var cycle = phraseBar++;
-        if (--drumStyleBars <= 0) {
+        // The tape echo follows the tempo, usually on a dotted eighth. Now and then (about one bar in thirty) it slides to another division (a sixteenth
+        // slap, an eighth, a triplet, a quarter, a dotted quarter, a half), and glides there quickly, the way a tape echo does when its time is
+        // turned, so the repeats dive and bend. More rarely (about one bar in eighty) it swells: for a couple of bars the feedback rises, the repeats pile up and ring on.
+        if (quiet > 0) quiet--;
+        if (chordPatternBars > 0) chordPatternBars--;
+        if (echoDelay) {
+          var echoBar = raagSession.b * raagSession.beat;
+          if (quiet <= 0 && Math.random() < .03 && claimWild('chords', next, next + 2.2)) { quiet = 4; echoDivision = nextTexture(echoDivision, [.75, .5, 2 / 3, 1, 1.5, .25, 2], Math.random); }
+          echoDelay.delayTime.setTargetAtTime(raagSession.quarterBeat * echoDivision, ac.currentTime, .35);
+          echoDelayB.delayTime.setTargetAtTime(raagSession.quarterBeat * echoDivision, ac.currentTime, .35);
+          if (echoSurge > 0) echoSurge--; else if (quiet <= 0 && Math.random() < .012 && claimWild('chords', next, next + 2 * echoBar + 1.5)) { quiet = 4; echoSurge = 2; }
+          echoBack.gain.setTargetAtTime(echoSurge > 0 ? .72 : .5, ac.currentTime, .25);
+        }
+        if (leadDelay) leadDelay.delayTime.setTargetAtTime(raagSession.quarterBeat * .75, ac.currentTime, .3);
+        var fxBar = raagSession.b * raagSession.beat;
+        if (leadFx && forced.fx !== 'off' && next >= filterUntil.lead && quiet <= 0 && Math.random() < leadFilterChance) moveFilters(leadFx, 'lead', leadRanges, next, fxBar);
+        if (bassFx && forced.fx !== 'off' && next >= filterUntil.bass && quiet <= 0 && Math.random() < bassFilterChance) moveFilters(bassFx, 'bass', bassRanges, next, fxBar);
+        if (--drumStyleBars <= 0 && quiet <= 0) {
           var drumPick = chooseDrumStyle(drumStyle, Math.random, raagSession.character && raagSession.character.styles);
-          drumStyle = drumPick.style; drumStyleBars = drumPick.bars;
+          drumStyle = forced.style && drumStyles.indexOf(forced.style) >= 0 ? forced.style : drumPick.style; drumStyleBars = drumPick.bars; quiet = 4;
         }
-        if (barsUntilBreak <= 0 && melodyBreakLeft === 0) {
-          melodyBreakLeft = 1;
-
-        }
-        var melodyBreak = melodyBreakLeft > 0;
+        if (--melodyMoodBars <= 0) { var mood = nextMelodyMood(melodyMood, Math.random); melodyMood = mood.mood; melodyMoodBars = mood.bars; }
+        var melodyBreak = melodyMood === 'off', berserk = melodyMood === 'berserk';
         var returningFromBreak = previousMelodyBreak && !melodyBreak; previousMelodyBreak = melodyBreak;
-        if (melodyBreak) { melodyBreakLeft--; if (!melodyBreakLeft) barsUntilBreak = 14 + Math.floor(Math.random() * 7); }
-        else barsUntilBreak--;
         if (--rhythmTextureBars <= 0) {
           // The chord pad, its reply and the stabs each get their own timbre, held for a good while.
-          var chordTextures = ['wood', 'hollow', 'soft-reed', 'harmonium', 'swarmandal', 'bowed'];
-          var padVoice = nextTexture(chordVoices.pad, chordTextures, Math.random), replyVoice = nextTexture(padVoice, chordTextures, Math.random);
-          chordVoices = { pad: padVoice, answer: replyVoice, stab: padVoice === 'swarmandal' || replyVoice === 'swarmandal' ? 'wood' : 'swarmandal' };
-          rhythmTextureBars = 14 + Math.floor(Math.random() * 7);
+          // The long chords take the organ, electric piano or a reed; the chops and stabs take a plucked voice.
+          var chordTextures = ['organ', 'epiano', 'soft-reed', 'harmonium', 'bowed', 'swarmandal'];
+          var padVoice = nextTexture(chordVoices.pad, chordTextures, Math.random);
+          var replyVoice = nextTexture(padVoice, chordTextures.filter(function (voice) { return voice !== chordVoices.answer; }), Math.random);
+          var plucked = ['clav', 'epiano', 'swarmandal'].filter(function (voice) { return voice !== padVoice && voice !== chordVoices.chop; });
+          chordVoices = { pad: padVoice, answer: replyVoice, stab: padVoice === 'swarmandal' || replyVoice === 'swarmandal' ? 'clav' : 'swarmandal',
+            chop: plucked[Math.floor(Math.random() * plucked.length)] };
+          rhythmTextureBars = Math.round((14 + Math.floor(Math.random() * 7)) * pace);
         }
         if (--percussionTextureBars <= 0) {
-          percussionTexture = nextTexture(percussionTexture, ['skin', 'clay', 'wood'], Math.random);
-          percussionTextureBars = 16 + Math.floor(Math.random() * 9);
+          percussionTexture = forced.kit && kits[forced.kit] ? forced.kit : nextTexture(percussionTexture, Object.keys(kits), Math.random);
+          percussionTextureBars = Math.round((16 + Math.floor(Math.random() * 9)) * pace);
         }
         if (!rhythmRiff) rhythmRiff = makeRiff(raagSession, Math.random);
         else if (--riffBarsLeft <= 0) {
           rhythmRiff = mutateRiff(rhythmRiff, raagSession, Math.random);
-          riffBarsLeft = 12 + Math.floor(Math.random() * 7);
+          riffBarsLeft = Math.round((12 + Math.floor(Math.random() * 7)) * pace);
+        }
+        function nextChordPattern() {
+          if (heldChordPattern && (chordPatternBars > 0 || quiet > 0)) return heldChordPattern;
+          heldChordPattern = { placement: Math.random(), answer: Math.random(), sharp: Math.random() < .55 };
+          chordPatternBars = Math.round((8 + Math.floor(Math.random() * 9)) * 2); quiet = 4;
+          return heldChordPattern;
         }
         if (!conversation || conversation.position >= conversation.length * 2) {
           if (!melodyVoices || --voiceConversations <= 0) pickMelodyVoices();
           var callTexture = melodyVoices.call, replyTexture = melodyVoices.reply;
           conversation = { length: Math.random() < .5 ? 1 : 2, position: 0, calls: [], callTexture: callTexture, replyTexture: replyTexture,
-            chordPattern: { placement: Math.random(), answer: Math.random(), sharp: Math.random() < .55 },
+            chordPattern: nextChordPattern(),
             reverseContour: Math.random() < .5, sparse: Math.random() < .5, restReply: false };
         }
         var responding = conversation.position >= conversation.length;
         var phraseIndex = conversation.position % conversation.length;
         // After a thin (non-rest) bar the lead must come forward; after a crowded bar it makes room.
-        var forceDense = !!previousBarProfile && !previousBarProfile.intentionalRest && previousBarProfile.density < .85;
-        var bar = composeCycle(raagSession, cycle, riffBar(raagSession, cycle, rhythmRiff), forceDense, leadDegree);
+        var forceDense = berserk || (!!previousBarProfile && !previousBarProfile.intentionalRest && previousBarProfile.density < .85);
+        var lead = berserk ? berserkOf(raagSession) : raagSession;
+        // Generation order, as a band plays: the drums set the groove, the bass locks to the kicks, the rhythm part (chords and stabs) locks to
+        // the bass and leaves its gaps, and the lead is composed last, over all of it.
+        var bar = { events: [] };
+        var melodyTexture = responding ? conversation.replyTexture : conversation.callTexture;
+        bar.melodyBreak = melodyBreak;
+        bar.melodyMood = melodyMood;
+        bar.rhythmTexture = chordVoices.pad;
+        bar.percussionTexture = percussionTexture;
+        bar.start = next;
+        bar.config = raagSession;
+        bar.duration = raagSession.b * raagSession.beat;
+        if (harmonyBarsLeft <= 0) {
+          harmonyWorld = raagSession;
+          if (!harmony || Math.random() > .15) harmony = chooseHarmony(harmonyWorld, harmony, null, Math.random);
+          harmonyBarsLeft = 2 + Math.floor(Math.random() * 3);
+          bassPedal = harmonyWorld.root + harmonyWorld.raga.notes[harmony.rootIndex];
+        }
+        var chordConfig = Object.assign({}, raagSession, { raga: harmonyWorld.raga, root: harmonyWorld.root, tonic: harmonyWorld.tonic });
+        bar.harmonyConfig = chordConfig;
+        bar.harmony = harmony.notes.slice();
+        var initialHarmony = harmony, change = null;
+        bar.riff = riffBar(raagSession, cycle, rhythmRiff);
+        if (raagSession.rhythm.kind !== 'poly') {
+          bar.riff = bar.riff.filter(function (attack, index) { return index === 0 || attack.strength >= .95 || Math.random() < .45; });
+        }
+        if (returningFromBreak && (!bar.riff.length || bar.riff[0].offset > 0)) {
+          bar.riff.unshift({ offset: 0, gate: Math.min(raagSession.beat * .5, bar.riff.length ? bar.riff[0].offset * .8 : raagSession.beat * .5), strength: 1 });
+        }
+        bandLean = nextLean(bandLean, Math.random);
+        // The drums come first; the bass is built from their kicks. The chords follow the bass (below), and the lead comes last.
+        var drumBlend = Math.random() < trait(raagSession, 'mixing') ? nextTexture(drumStyle, drumStyles.filter(function (name) { return name !== 'ride'; }), Math.random) : null;
+        bar.drums = composeDrums(raagSession, cycle, Math.random, rhythmRiff, melodyBreak, drumStyle, drumBlend);
+        bar.bass = composeGrooveBass(chordConfig, initialHarmony, bar.riff, riffBar(raagSession, cycle + 1, rhythmRiff), cycle, !change && !melodyBreak && !pendingMeter && melodyMoodBars > 1 && harmonyBarsLeft > 1 && changeIn > 1, bassUntil > next + .005, bassPedal, bar.drums, undefined);
+        bar.drumStyle = drumStyle;
+        bar.chords = harmonyPhrases(raagSession, bar.riff, conversation.chordPattern, responding, { bass: bar.bass });
+        // Chords and lead share the whole bar: a pad underneath, with any second chord entering where the lead is open.
+        var space = { separated: false, melodyWindow: [0, bar.duration] };
+        bar.temporalSpace = space;
+        bar.chords = lockChordsToBass(bar.chords, bar.bass, bar.duration, raagSession.quarterBeat / 4);
+        var candidates = bar.bass.filter(function (event) {
+          return event.offset > Math.max(bar.duration * .3, bassUntil - next + .05, bar.chords.length ? bar.chords[0].offset + .15 : 0)
+            && event.offset < bar.duration * .8
+            && Math.abs(event.offset / raagSession.beat - Math.round(event.offset / raagSession.beat)) < .1;
+        });
+        if (!space.separated && candidates.length && Math.random() < trait(raagSession, 'moving') * .5) {
+          var pivot = candidates[Math.floor(Math.random() * candidates.length)];
+          var replacement = chooseHarmony(chordConfig, harmony, null, Math.random);
+          var pitchKey = function (chord) { return chord.notes.map(function (n) { return (n % 12 + 12) % 12; }).sort(function (a, b) { return a - b; }).join(','); };
+          // A repeated random set is a valid hold, not a pretend harmonic change.
+          if (pitchKey(replacement) !== pitchKey(harmony)) {
+            change = { offset: pivot.offset, harmony: replacement };
+            if (!(bar.chords[0] && bar.chords[0].bed)) {
+              bar.chords = bar.chords.filter(function (hit) { return hit.offset < pivot.offset; }).slice(0, 1);
+              bar.chords.forEach(function (hit) { hit.gate = Math.min(hit.gate, pivot.offset - hit.offset - .025); });
+              bar.chords.push({ offset: pivot.offset, gate: Math.max(.05, (bar.duration - pivot.offset) * .96), strength: .85, articulation: 'sustained', role: 'answer', strum: .02, strumDown: false });
+            }
+          }
+        }
+        bar.harmonyChanges = change ? [{ offset: change.offset, notes: change.harmony.notes.slice() }] : [];
+        // Occasionally punctuate with stabs in the gaps between the bass and the drums (less often when the harmony just turned).
+        bar.chords = addStabs(bar.chords, bar.bass.concat(bar.drums.filter(function (hit) { return hit.voice !== 'hat' && hit.voice !== 'ride'; })), bar.duration, raagSession.quarterBeat / 4, Math.random, (change ? trait(raagSession, 'stabs') * .5 : trait(raagSession, 'stabs')) * (melodyBreak ? 1.4 : 1) * (bar.chords.some(function (hit) { return hit.gesture === 'chop' || hit.gesture === 'push'; }) ? .3 : 1));
+        if (change) {
+          // The bass turns with the chord but not always on it: sometimes a tick early, sometimes a tick late.
+          var turnAt = Math.min(bar.duration - .1, Math.max(.05, change.offset + [-1, 0, 0, 1][Math.floor(Math.random() * 4)] * raagSession.quarterBeat / 4));
+          bar.bass = bar.bass.filter(function (event) { return event.offset < turnAt - .04; });
+          bar.bass.forEach(function (event) { event.gate = Math.min(event.gate, turnAt - event.offset - .02); });
+          harmony = change.harmony;
+          bassPedal = harmonyWorld.root + harmonyWorld.raga.notes[harmony.rootIndex];
+          var bassNote = harmonyWorld.raga.notes[harmony.rootIndex];
+          while (harmonyWorld.tonic * Math.pow(2, bassNote / 12) > 140) bassNote -= 12;
+          while (harmonyWorld.tonic * Math.pow(2, bassNote / 12) < 45) bassNote += 12;
+          bar.bass.push({ offset: turnAt, gate: bar.duration - turnAt - .02, note: bassNote, strength: .78 });
+          harmonyBarsLeft = 2 + Math.floor(Math.random() * 3);
+        }
+        bar.events = composeCycle(lead, cycle, riffBar(raagSession, cycle, rhythmRiff), forceDense, leadDegree).events;
         if (!responding) conversation.calls.push({ duration: raagSession.b * raagSession.beat, events: bar.events.map(function (event) { return Object.assign({}, event); }) });
         else {
           var remembered = conversation.calls[phraseIndex], call = remembered.events;
@@ -2291,43 +3065,24 @@
         }
         bar.events = shapeRegister(bar.events, responding, Math.random() < .05);
         // The lead comes back to its motif now and then (more in wilder sessions, a little less while answering).
-        var repeated = false;
-        if (!melodyBreak && !forceDense && melodyMotif && melodyMotif.duration === raagSession.b * raagSession.beat && Math.random() < repeatChance(raagSession) * (responding ? .6 : 1)) {
+        // After a thin bar the lead must come forward, but a motif that is itself full may still return; berserk never repeats.
+        var repeated = false, motifFull = !!melodyMotif && melodyMotif.events.length / (raagSession.b * raagSession.beat / raagSession.quarterBeat) >= .85;
+        if (!melodyBreak && !berserk && (!forceDense || motifFull) && melodyMotif && melodyMotif.duration === raagSession.b * raagSession.beat && Math.random() < repeatChance(raagSession) * (responding ? .8 : 1)) {
           bar.events = varyRepeat(raagSession, melodyMotif.events, Math.random); repeated = true;
-        } else if (!melodyBreak && (!melodyMotif || Math.random() < .7)) {
-          melodyMotif = { duration: raagSession.b * raagSession.beat, events: bar.events.map(function (event) { return Object.assign({}, event); }) };
+        } else if (!melodyBreak && (!melodyMotif || Math.random() < .45)) {
+          melodyMotif = { duration: raagSession.b * raagSession.beat, seed: Math.floor(Math.random() * 2147483647), events: bar.events.map(function (event) { return Object.assign({}, event); }) };
         }
-        var melodyTexture = responding ? conversation.replyTexture : conversation.callTexture;
         conversation.position++;
         bar.voice = melodyTexture;
-        bar.melodyBreak = melodyBreak;
-        bar.rhythmTexture = chordVoices.pad;
-        bar.percussionTexture = percussionTexture;
-        bar.start = next;
-        bar.config = raagSession;
-        bar.duration = raagSession.b * raagSession.beat;
-        if (harmonyBarsLeft <= 0) {
-          harmonyWorld = raagSession;
-          if (!harmony || Math.random() > .15) harmony = chooseHarmony(harmonyWorld, harmony, bar.events[0].note, Math.random);
-          harmonyBarsLeft = 1 + Math.floor(Math.random() * 2);
-          bassPedal = harmonyWorld.root + harmonyWorld.raga.notes[harmony.rootIndex];
-        }
-        var chordConfig = Object.assign({}, raagSession, { raga: harmonyWorld.raga, root: harmonyWorld.root, tonic: harmonyWorld.tonic });
-        bar.harmonyConfig = chordConfig;
-        bar.harmony = harmony.notes.slice();
         // Land the lead: chord tones on strong beats, sometimes sam, and a cadence at the end of a reply.
         var phraseEnd = responding && phraseIndex === conversation.length - 1;
-        if (!melodyBreak) bar.events = landOnTargets(raagSession, bar.events, chordPitchClasses(harmony, harmonyWorld, raagSession), {
-          sam: Math.random() < (phraseIndex === 0 && !responding ? Math.min(.95, trait(raagSession, 'sam') + .15) : trait(raagSession, 'sam') * .7),
-          cadence: phraseEnd ? (Math.random() < trait(raagSession, 'cadence') ? 'tonic' : 'chord') : (Math.random() < .25 ? 'chord' : null)
-        }, Math.random);
-        bar.riff = riffBar(raagSession, cycle, rhythmRiff);
-        if (raagSession.rhythm.kind !== 'poly') {
-          bar.riff = bar.riff.filter(function (attack, index) { return index === 0 || attack.strength >= .95 || Math.random() < .45; });
-        }
-        if (returningFromBreak && (!bar.riff.length || bar.riff[0].offset > 0)) {
-          bar.riff.unshift({ offset: 0, gate: Math.min(raagSession.beat * .5, bar.riff.length ? bar.riff[0].offset * .8 : raagSession.beat * .5), strength: 1 });
-        }
+        // A returning motif is landed with a seeded draw (and no sam or cadence), so the same motif over the same chord comes out the same
+        // each time, while a new chord moves its colour tones with it.
+        var landing = chordPitchClasses(initialHarmony, harmonyWorld, raagSession);
+        if (!melodyBreak) bar.events = landOnTargets(raagSession, bar.events, landing, repeated ? { sam: false, cadence: null } : {
+          sam: Math.random() < (phraseIndex === 0 && !responding ? Math.min(.6, trait(lead, 'sam')) : trait(lead, 'sam') * .3),
+          cadence: phraseEnd ? (Math.random() < .35 ? (Math.random() < trait(lead, 'cadence') ? 'tonic' : 'chord') : null) : (Math.random() < .25 ? 'chord' : null)
+        }, repeated ? phraseRandom(melodyMotif.seed + landing.classes.reduce(function (sum, pc) { return sum * 13 + pc + 1; }, 7)) : Math.random);
         // Respond to the last bar: dense playing favors space next; silence favors an entrance.
         var sourceEvents = bar.events.slice();
         var sparseNow = forceDense ? false : previousBarProfile ? Math.random() < (previousBarProfile.density > 1.2 ? .75 : .25) : conversation.sparse;
@@ -2350,60 +3105,17 @@
           return Object.assign({}, event, { gate: Math.min(event.gate, bar.duration - event.offset - .12) });
         });
         bar.events = sustainSparseMelody(bar.events, bar.duration, raagSession.quarterBeat);
-        bar.arrangement = !bar.events.length ? 'drums-chords-bass' : 'ensemble';
-        bar.drumStyle = drumStyle;
-        bar.chords = harmonyPhrases(raagSession, bar.riff, conversation.chordPattern, responding);
-        // Chords and lead share the whole bar: a pad underneath, with any second chord entering where the lead is open.
-        var space = { separated: false, melodyWindow: [0, bar.duration] };
-        bar.temporalSpace = space;
-        if (bar.events.length) bar.chords = answerChords(bar.chords, mainOnsets(bar.events), bar.duration, raagSession.quarterBeat / 4);
-        var initialHarmony = harmony, change = null;
-        var candidates = bar.events.filter(function (event) {
-          return event.offset > Math.max(bar.duration * .3, bassUntil - next + .05, bar.chords.length ? bar.chords[0].offset + .15 : 0)
-            && event.offset < bar.duration * .8
-            && Math.abs(event.offset / raagSession.beat - Math.round(event.offset / raagSession.beat)) < .1;
-        });
-        if (!melodyBreak && !space.separated && candidates.length && Math.random() < trait(raagSession, 'moving')) {
-          var pivot = candidates[Math.floor(Math.random() * candidates.length)];
-          var replacement = chooseHarmony(chordConfig, harmony, pivot.note, Math.random);
-          var pitchKey = function (chord) { return chord.notes.map(function (n) { return (n % 12 + 12) % 12; }).sort(function (a, b) { return a - b; }).join(','); };
-          // A repeated random set is a valid hold, not a pretend harmonic change.
-          if (pitchKey(replacement) !== pitchKey(harmony)) {
-            change = { offset: pivot.offset, harmony: replacement };
-            if (!(bar.chords[0] && bar.chords[0].bed)) {
-              bar.chords = bar.chords.filter(function (hit) { return hit.offset < pivot.offset; }).slice(0, 1);
-              bar.chords.forEach(function (hit) { hit.gate = Math.min(hit.gate, pivot.offset - hit.offset - .025); });
-              bar.chords.push({ offset: pivot.offset, gate: Math.max(.05, (bar.duration - pivot.offset) * .96), strength: .85, articulation: 'sustained', role: 'answer', strum: .02, strumDown: false });
-            }
-            // The lead lands on the new chord at the turn.
-            var arrival = chordPitchClasses(replacement, harmonyWorld, raagSession).classes.filter(function (pc) { return raagSession.raga.notes.indexOf(pc) >= 0; });
-            if (arrival.length) {
-              pivot.note = nearestPitch(pivot.note, arrival); pivot.slideFrom = null;
-              for (var after = bar.events.indexOf(pivot) + 1; bar.events[after] && bar.events[after].again; after++) bar.events[after].note = pivot.note;
-            }
+        // If the harmony turns mid-bar, the lead sometimes lands on the new chord at the turn.
+        if (change && Math.random() < .5) {
+          var arrival = chordPitchClasses(change.harmony, harmonyWorld, raagSession).classes.filter(function (pc) { return raagSession.raga.notes.indexOf(pc) >= 0; });
+          var turnNote = mainOnsets(bar.events).filter(function (event) { return Math.abs(event.offset - change.offset) <= raagSession.quarterBeat / 2; })
+            .sort(function (a, b) { return Math.abs(a.offset - change.offset) - Math.abs(b.offset - change.offset); })[0];
+          if (arrival.length && turnNote) {
+            turnNote.note = nearestPitch(turnNote.note, arrival); turnNote.slideFrom = null;
+            for (var after = bar.events.indexOf(turnNote) + 1; bar.events[after] && bar.events[after].again; after++) bar.events[after].note = turnNote.note;
           }
         }
-        bar.harmonyChanges = change ? [{ offset: change.offset, notes: change.harmony.notes.slice() }] : [];
-        // Occasionally punctuate with a pair of stabs where the lead is open (less often when the harmony just turned).
-        if (!melodyBreak) bar.chords = addStabs(bar.chords, mainOnsets(bar.events), bar.duration, raagSession.quarterBeat / 4, Math.random, change ? trait(raagSession, 'stabs') * .5 : trait(raagSession, 'stabs'));
-        bandLean = nextLean(bandLean, Math.random);
-        // The drums are composed first: the bass is built from their kicks.
-        var drumBlend = Math.random() < trait(raagSession, 'mixing') ? nextTexture(drumStyle, drumStyles.filter(function (name) { return name !== 'ride'; }), Math.random) : null;
-        bar.drums = composeDrums(raagSession, cycle, Math.random, rhythmRiff, melodyBreak, drumStyle, drumBlend);
-        bar.bass = composeGrooveBass(chordConfig, initialHarmony, bar.riff, riffBar(raagSession, cycle + 1, rhythmRiff), cycle, !change && !melodyBreak && !pendingMeter && barsUntilBreak > 0 && harmonyBarsLeft > 1 && changeIn > 1, bassUntil > next + .005, bassPedal, bar.drums, bar.chords);
-        if (change) {
-          // The bass turns with the chord but not always on it: sometimes a tick early, sometimes a tick late.
-          var turnAt = Math.min(bar.duration - .1, Math.max(.05, change.offset + [-1, 0, 0, 1][Math.floor(Math.random() * 4)] * raagSession.quarterBeat / 4));
-          bar.bass = bar.bass.filter(function (event) { return event.offset < turnAt - .04; });
-          bar.bass.forEach(function (event) { event.gate = Math.min(event.gate, turnAt - event.offset - .02); });
-          harmony = change.harmony;
-          bassPedal = harmonyWorld.root + harmonyWorld.raga.notes[harmony.rootIndex];
-          var bassNote = harmonyWorld.raga.notes[harmony.rootIndex];
-          while (harmonyWorld.tonic * Math.pow(2, bassNote / 12) > 140) bassNote -= 12;
-          while (harmonyWorld.tonic * Math.pow(2, bassNote / 12) < 45) bassNote += 12;
-          bar.bass.push({ offset: turnAt, gate: bar.duration - turnAt - .02, note: bassNote, strength: .78 });
-          harmonyBarsLeft = 1 + Math.floor(Math.random() * 2);
-        }
+        bar.arrangement = !bar.events.length ? 'drums-chords-bass' : 'ensemble';
         // Plan every chord hit (laid back a touch behind the lead), then keep the instruments from sharing a pitch on a beat.
         var chordPlans = bar.chords.map(function (attack) {
           var laidBack = pushPull(attack, bandLean * .5 + .008, bar.duration);
@@ -2425,14 +3137,24 @@
           // crossfade and not a series of restarts. Stabs and beds keep their own short shape.
           var overlap = attack.articulation === 'sharp' || attack.bed ? 0 : plan === chordPlans[chordPlans.length - 1] ? Math.min(.5, bar.duration * .3) : Math.min(.14, raagSession.quarterBeat * .3);
           playHarmony(plan.notes, harmonyWorld.tonic, next + attack.offset, attack.gate + overlap, attack.strength, timbre, attack.articulation, attack.strum, attack.strumDown, attack);
+          // The echo catches the attack of some hits (about four in ten): its send opens at the hit and closes shortly after (a long chord is caught
+          // for its first half second, not smeared), and the repeats ring on by themselves. The other hits stay clean.
+          if (echoSend && forced.tape !== 'off' && Math.random() < echoShare) {
+            echoSend.gain.setValueAtTime(1, next + attack.offset); echoSend.gain.setValueAtTime(0, next + attack.offset + Math.min(attack.gate, .5) + .08);
+          }
           // A quiet octave shimmer on top of the chord.
           if (attack.shimmer && plan.notes.length) playHarmony([Math.max.apply(null, plan.notes) + 12], harmonyWorld.tonic, next + attack.offset + .02, attack.gate * .8, attack.strength * .3, 'swarmandal', 'sustained', 0, false, { high: true });
         });
         // Hits on a drum hit stay exactly with it; hits on a chord lean the way the chords do; the rest lean a little.
-        bar.bass = bar.bass.map(function (event) { return pushPull(event, event.kick ? 0 : event.chord ? bandLean * .5 + .008 : -bandLean * .4, bar.duration); });
+        bar.bass = chordingBass(bar.bass.map(function (event) { return pushPull(event, event.kick ? 0 : event.chord ? bandLean * .5 + .008 : -bandLean * .4, bar.duration); }), bar.duration);
         bar.bass.forEach(function (event) {
           bassUntil = Math.max(bassUntil, next + event.offset + event.gate);
-          playBass(harmonyWorld.tonic * Math.pow(2, event.note / 12), next + event.offset, event.gate, event.strength, event.slideFrom === undefined || event.slideFrom === null ? null : harmonyWorld.tonic * Math.pow(2, event.slideFrom / 12), event);
+          var chordNow = change && event.offset >= change.offset - raagSession.quarterBeat / 4 - .02 ? change.harmony : initialHarmony;
+          var glitch = bassFx && forced.fx !== 'off' && Math.random() < bassGlitchShare ? chooseGlitch(false) : null;
+          if (glitch && !claimWild('bass', next + event.offset, next + event.offset + glitchSpan(glitch, event.gate))) glitch = null;   // another voice is mid-effect: stay clean
+          var spoken = glitch === 'dive' ? Object.assign({}, event, { fall: 4 + Math.floor(Math.random() * 6) }) : event;
+          playBass(harmonyWorld.tonic * Math.pow(2, event.note / 12), next + event.offset, event.gate, event.strength, event.slideFrom === undefined || event.slideFrom === null ? null : harmonyWorld.tonic * Math.pow(2, event.slideFrom / 12), spoken, bassStack(event.note, chordNow));
+          if (glitch && glitch !== 'dive') glitchVoice(bassFx, glitch, next + event.offset, event.gate);
         });
         harmonyBarsLeft--;
         // Occasionally let the answering instrument enter under the call's final note.
@@ -2450,7 +3172,7 @@
           }
         }
         // The last word on the line: slides, swells, ornaments and the bar's dynamic shape.
-        if (!melodyBreak) bar.events = expressMelody(raagSession, bar.events, Math.random);
+        if (!melodyBreak) bar.events = expressMelody(lead, bar.events, Math.random);
         // Lead leans with the band; off-beat notes pull a little later still.
         bar.events = bar.events.map(function (event) {
           var onBeat = Math.abs(event.offset / raagSession.beat - Math.round(event.offset / raagSession.beat)) < .05;
@@ -2463,11 +3185,14 @@
         window.raagViz.bars.push(bar);
         bar.events.forEach(function (event) {
           var freq = raagSession.tonic * Math.pow(2, event.note / 12), fromFreq = event.slideFrom === null ? null : raagSession.tonic * Math.pow(2, event.slideFrom / 12);
-          softLead(freq, next + event.offset, event.strength, event.gate, fromFreq, event.voice, event);
+          var glitch = leadFx && forced.fx !== 'off' && Math.random() < leadGlitchShare ? chooseGlitch(true) : null;
+          if (glitch && !claimWild('lead', next + event.offset, next + event.offset + glitchSpan(glitch, event.gate))) glitch = null;   // the chords are mid-effect: stay clean
+          softLead(freq, next + event.offset, event.strength, event.gate, fromFreq, event.voice, glitch === 'dive' ? Object.assign({}, event, { fall: 5 + Math.floor(Math.random() * 8) }) : event);
+          if (glitch && glitch !== 'dive') glitchVoice(leadFx, glitch, next + event.offset, event.gate);
         });
         // Most bars borrow beats from a second groove (a long ride is broken up the same way).
         bar.drums.forEach(function (hit) {
-          drum(hit.voice, next + hit.offset, hit.strength, harmonyWorld.tonic, percussionTexture);
+          drum(hit.voice, next + hit.offset, hit.strength, harmonyWorld.tonic, percussionTexture, hit.open);
         });
         next += bar.duration;
       }
@@ -2477,7 +3202,12 @@
     }
     // Chord timbres. wood, hollow and soft-reed are sine blends; swarmandal is a bright harp-like pluck that decays fast;
     // harmonium and bowed are detuned sawtooth reeds through a lowpass (bowed blooms slowly, with a little vibrato).
+    // epiano is a warm tine: a body with a bright high partial that dies quickly; organ is a steady drawbar blend; clav is a percussive,
+    // bright pluck made for short chops. They replace the plain sine pads (wood, hollow), which are kept only as fallbacks.
     var chordTimbres = {
+      epiano: { partials: [1, 2, 7], gains: [.8, .16, .1], lowpass: 3000, attack: .004, mid: .5, fall: [1, .55, .12], floor: .3, trim: 1.4 },
+      organ: { partials: [1, 2, 3, 4], gains: [.7, .45, .3, .18], lowpass: 2600, attack: .015, mid: .92, fall: [1, 1, 1, 1], floor: .9, trim: 1.2 },
+      clav: { partials: [1, 2, 3, 4, 5], gains: [.6, .5, .4, .3, .2], lowpass: 4200, attack: .003, mid: .12, fall: [1, .35, .3, .25, .2], floor: .05, trim: 1.5 },
       wood: { partials: [1, 2, 3], gains: [.85, .22, .055], lowpass: 1150, attack: .18, mid: .55, fall: [1, .55, .55], floor: .55, trim: 1.3 },
       hollow: { partials: [1, 2, 2.76], gains: [.92, .12, .008], bell: true, lowpass: 950, attack: .18, mid: .55, fall: [1, .55, .55], floor: .55, trim: 1.3 },
       'soft-reed': { partials: [1, 2, 3], gains: [.85, .19, .055], lowpass: 1000, attack: .22, mid: .55, fall: [1, .9, .9], floor: .55, trim: 1.3 },
@@ -2555,33 +3285,58 @@
       for (var h = 0; h < 9; h++) imag[h] = base[h] + richness * extra[h];
       return (bassWaves[richness] = ac.createPeriodicWave(new Float32Array(9), imag));
     }
-    function playBass(frequency, when, duration, strength, fromFrequency, expr) {
-      expr = expr || {};
-      var raise = Math.max(0, Math.min(1, (190 - frequency) / 130)), richness = raise > .66 ? 1 : raise > .25 ? .5 : 0;
-      var level = .55 * strength * (1 + .9 * raise) * .92 * (expr.soft ? .85 : 1);
+    // The bass plays low chords, softly: the quick notes (ghosts, fast runs and triplets) are dropped, and every other note is held, overlapping a
+    // little, until the next one; the last rings to the end of the bar and on.
+    function chordingBass(events, duration) {
+      var held = events.filter(function (event) { return !event.ghost && !event.chain && !event.triplet; });
+      return held.map(function (event, i) {
+        var next = held[i + 1], end = next ? next.offset + .12 : event.offset + Math.max(event.gate, duration - event.offset + .1);
+        return Object.assign({}, event, { gate: Math.max(.25, end - event.offset), clipped: false, shape: 'sustain', soft: true });
+      });
+    }
+    // The low chord a bass note plays: the note, a fifth above it (or, failing that, the nearest chord tone up from it), and its octave while that
+    // still sits in the bass range. Intervals are semitones above the note.
+    function bassStack(note, harmony) {
+      var pcs = harmony.notes.map(function (n) { return ((n % 12) + 12) % 12; }), stack = [0];
+      var above = [7, 5, 4, 3, 8, 9].filter(function (interval) { return pcs.indexOf((((note + interval) % 12) + 12) % 12) >= 0; })[0];
+      if (above !== undefined) stack.push(above);
+      if (harmonyWorld.tonic * Math.pow(2, (note + 12) / 12) <= 180) stack.push(12);
+      return stack;
+    }
+    // No sharp attack: every note swells in over a tenth of a second or more, holds, and lets go gently. `stack` is the chord, in semitones above
+    // the note; each tone has its own spectrum (richer when low, so it carries on small speakers) and the added tones sit a little under the root.
+    function playBass(frequency, when, duration, strength, fromFrequency, expr, stack) {
+      expr = expr || {}; stack = stack || [0];
+      var level = .55 * strength * .92 / Math.sqrt(1 + .49 * (stack.length - 1));
       var env = ac.createGain(); env.connect(bassBus);
+      var attack = Math.min(Math.max(.09, duration * .3), .3), release = Math.min(.18, duration * .3);
       env.gain.setValueAtTime(.0001, when);
-      env.gain.linearRampToValueAtTime(level, when + (expr.soft ? Math.min(.05, duration * .3) : Math.min(expr.shape === 'pluck' ? .012 : .025, duration * .15)));
-      if (expr.shape === 'pluck') env.gain.exponentialRampToValueAtTime(level * .38, when + duration * .55);
-      else env.gain.linearRampToValueAtTime(level * .87, when + Math.max(.03, duration - Math.min(.12, duration * .2)));
+      env.gain.linearRampToValueAtTime(level, when + attack);
+      env.gain.linearRampToValueAtTime(level * .9, when + Math.max(attack + .02, duration - release));
       env.gain.exponentialRampToValueAtTime(.0001, when + duration);
-      var source = ac.createOscillator(), glide = expr.glide || .06;
-      source.setPeriodicWave(bassWave(richness));
-      source.frequency.setValueAtTime(fromFrequency || frequency, when);
-      if (fromFrequency) source.frequency.exponentialRampToValueAtTime(frequency, when + Math.min(glide, duration * .5));
-      if (expr.fall) {
-        source.frequency.setValueAtTime(frequency, when + Math.max(glide + .02, duration * .6));
-        source.frequency.exponentialRampToValueAtTime(frequency * Math.pow(2, -expr.fall / 12), when + duration * .96);
-      }
-      var wobble = null, depth = null;
+      var glide = expr.glide || .06, remaining = stack.length, sources = [];
+      function done() { if (--remaining === 0) env.disconnect(); }
+      stack.forEach(function (interval) {
+        var ratio = Math.pow(2, interval / 12), tone = frequency * ratio, raise = Math.max(0, Math.min(1, (190 - tone) / 130)), richness = raise > .66 ? 1 : raise > .25 ? .5 : 0;
+        var source = ac.createOscillator(), weight = ac.createGain();
+        weight.gain.value = (1 + .9 * raise) * (interval ? .7 : 1);
+        source.setPeriodicWave(bassWave(richness));
+        source.frequency.setValueAtTime((fromFrequency || frequency) * ratio, when);
+        if (fromFrequency) source.frequency.exponentialRampToValueAtTime(tone, when + Math.min(glide, duration * .5));
+        if (expr.fall) {
+          source.frequency.setValueAtTime(tone, when + Math.max(glide + .02, duration * .6));
+          source.frequency.exponentialRampToValueAtTime(tone * Math.pow(2, -expr.fall / 12), when + duration * .96);
+        }
+        source.connect(weight); weight.connect(env); source.start(when); source.stop(when + duration + .01); sources.push(source);
+        source.onended = function () { source.disconnect(); weight.disconnect(); done(); };
+      });
       if (expr.vibrato) {
-        wobble = ac.createOscillator(); depth = ac.createGain(); wobble.frequency.value = 4.6;
+        var wobble = ac.createOscillator(), depth = ac.createGain(); wobble.frequency.value = 4.6;
         depth.gain.setValueAtTime(0, when); depth.gain.linearRampToValueAtTime(expr.vibrato, when + .25);
-        wobble.connect(depth); depth.connect(source.detune); wobble.start(when); wobble.stop(when + duration + .01);
+        sources.forEach(function (source) { depth.connect(source.detune); });
+        wobble.connect(depth); wobble.start(when); wobble.stop(when + duration + .01);
         wobble.onended = function () { wobble.disconnect(); depth.disconnect(); };
       }
-      source.connect(env); source.start(when); source.stop(when + duration + .01);
-      source.onended = function () { source.disconnect(); env.disconnect(); };
     }
 
     // Fade after the reverb and compressor so the entire audible mix fades together.
@@ -2652,6 +3407,59 @@
       }
     }
 
+    // A whole new combination: a new key, raga, meter and tempo, a new character for the band, and every cycle (groove, kit, chord sound,
+    // riff, voices, melody mood) starting over.
+    // Nothing audible carries over: a different raga, meter and key (chooseSession excludes the current ones), a tempo at least about 16%
+    // away, a different drum kit and groove (their pickers exclude the current ones), and chord and melody voices unlike the ones before.
+    function resetCombination() {
+      var fresh;
+      for (var tries = 0; tries < 12; tries++) {
+        fresh = chooseSession(raagSession);
+        if (Math.abs(Math.log(fresh.quarterBeat / raagSession.quarterBeat)) > .15 && fresh.rhythm.label !== raagSession.rhythm.label && fresh.raga.name !== raagSession.raga.name) break;
+      }
+      raagSession = Object.assign({}, fresh, { character: chooseCharacter(Math.random) });
+      harmony = null; harmonyBarsLeft = 0; harmonyWorld = raagSession; bassPedal = raagSession.root;
+      phraseBar = 0; conversation = null; rhythmRiff = null; riffBarsLeft = 3; bassUntil = 0; previousBarProfile = null;
+      changeIn = Math.round((12 + Math.floor(Math.random() * 7)) * pace); pendingMeter = false; melodyMotif = null; recentChanges = [];
+      wildWindows = []; wildTime = { lead: [0, 0, 0], chords: [0, 0, 0], bass: [0, 0, 0] }; filterUntil = { lead: 0, bass: 0 };   // these are times on the old audio clock, which the new one does not share
+      voiceConversations = 0;   // the next conversation picks new voices, avoiding the current ones (melodyVoices is kept for that)
+      melodyMood = 'normal'; melodyMoodBars = 16 + Math.floor(Math.random() * 9); previousMelodyBreak = false;
+      drumStyleBars = 0; percussionTextureBars = 0; rhythmTextureBars = 0; bandLean = 0; leadDegree = null; quiet = 0; chordPatternBars = 0; heldChordPattern = null;
+      bassWaves = {};
+    }
+    // The old sound keeps playing while it fades out; the new combination starts on a fresh audio context and fades in over the same
+    // brief moment, so the change is a quick blend and not a cut. The old context is closed once it is silent.
+    var BLEND = .5;   // seconds
+    var shuffleButton = document.getElementById('shuffle'), shuffling = false;
+    function shuffle() {
+      if (!on || shuffling || !ac) return;
+      shuffling = true;
+      shuffleButton.setAttribute('aria-busy', 'true'); shuffleButton.classList.add('spinning');
+      if (window.nextArtwork) window.nextArtwork();
+      var oldAc = ac, oldOutput = output, now = oldAc.currentTime;
+      var progress = fade.end > fade.start ? Math.max(0, Math.min(1, (now - fade.start) / (fade.end - fade.start))) : 1;
+      var current = fade.from + (fade.to - fade.from) * progress;
+      clearInterval(timer);
+      resetCombination();
+      setup();
+      fade = { from: 0, to: 0, start: 0, end: 0 };
+      ac.resume();
+      next = ac.currentTime + .1;
+      window.raagViz.bars.length = 0;
+      window.raagViz.setTime(ac.currentTime);
+      schedule(); timer = setInterval(schedule, 1000);
+      fadeOutput(1, BLEND);
+      oldOutput.gain.cancelScheduledValues(now);
+      oldOutput.gain.setValueAtTime(current, now);
+      oldOutput.gain.linearRampToValueAtTime(0, now + BLEND);
+      setTimeout(function () {
+        try { oldAc.close(); } catch (e) {}
+        shuffling = false;
+        shuffleButton.removeAttribute('aria-busy'); shuffleButton.classList.remove('spinning');
+      }, BLEND * 1000 + 300);
+    }
+    shuffleButton.addEventListener('click', shuffle);
+
     function remember(v) { try { localStorage.setItem('music', v); } catch (e) {} }
 
     btn.addEventListener('click', function () {
@@ -2660,6 +3468,7 @@
     });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && on) { toggle(false); btn.focus(); }
+      else if ((event.key === 'n' || event.key === 'N') && on && !event.metaKey && !event.ctrlKey && !event.altKey) shuffle();
     });
     // Music and the shader start only from the explicit Play control.
 

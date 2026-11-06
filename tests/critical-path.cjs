@@ -53,7 +53,7 @@ const css = head.slice(head.indexOf('<style>'), head.indexOf('</style>'));
 assert(/@media \(max-width: 699px\), \(max-height: 420px\) \{\s*\.raag-visualizer \{/.test(css), 'compact bar is for phones and very short windows only');
 assert(!/@media \(max-width: 1100px\), \(max-height: 650px\)/.test(css), 'laptops and tablets no longer fall into the compact bar');
 assert(/@media \(min-width: 700px\) and \(max-width: 1307px\) and \(min-height: 421px\) \{\s*main \{[^}]*margin: 3rem 1rem 380px 244px/.test(css), 'the page card makes room for the full panel on tablets and small laptops');
-assert(/\.raag-visualizer \{[^}]*width: clamp\(216px, min\(13\.5vw, 30vh\), 300px\)/.test(css), 'the panel grows a little on big screens');
-// 244px = panel (up to 216px) + its 16px margin + a gutter; a centred 820px card clears that from 1308px up.
+assert(/\.raag-visualizer \{[^}]*width: clamp\(192px, min\(12vw, 27vh\), 266px\)/.test(css), 'the panel grows a little on big screens');
+// 244px = panel (192px at these widths) + its 16px margin + a gutter; a centred 820px card clears that from 1308px up.
 assert((1308 - 820) / 2 >= 244, 'centred card clears the panel at the breakpoint');
 console.log('CRITICAL PATH OK: profile is static HTML, nothing blocks first paint, artwork and scene start late.');
