@@ -1773,9 +1773,8 @@
     // Plain-language names for the status line; the tempo comes from the scene, the rest from the bar being played.
     var plainNames = { boombap: 'boom-bap', bonham: 'big room' };
     function statusLines(bar) {
-      var plain = function (key) { return plainNames[key] || key; }, gesture = bar.chords && bar.chords.length ? bar.chords[0].gesture : '';
-      return Math.round(60 / bar.config.quarterBeat) + ' BPM' + (bar.drumStyle ? ' · ' + plain(bar.drumStyle) : '') + (bar.percussionTexture ? ' · ' + plain(bar.percussionTexture) : '')
-        + '\nLead: ' + (bar.melodyMood || 'normal') + (gesture ? ' · Chords: ' + gesture : '');
+      var plain = function (key) { return plainNames[key] || key; };
+      return Math.round(60 / bar.config.quarterBeat) + ' BPM' + (bar.drumStyle ? ' · ' + plain(bar.drumStyle) : '') + (bar.percussionTexture ? ' · ' + plain(bar.percussionTexture) : '');
     }
     // A ring can be picked out (hover, focus, or press a legend chip to pin it); the others dim so it can be followed on its own.
     var highlight = null, hovered = null, pinned = null;
@@ -2338,7 +2337,9 @@
     // Audition aid: index.html#kit=electro&style=djent pins the drum kit and style (kits: boombap, bonham, electro); #tape=off bypasses the lo-fi chain, #fx=off the random filters and glitches on the lead.
     var forced = {};
     String(window.location && window.location.hash || '').replace(/[#&](kit|style|tape|fx)=([\w-]+)/g, function (_, key, value) { forced[key] = value; return ''; });
-    var echoShare = .4;   // the share of chord hits the tape echo catches
+    var echoShare = .6;   // the share of chord hits the tape echo catches while it is on
+    // The echo is on for a stretch of bars and then off for a stretch, so some bars (about four in ten) have no echo on the chords at all.
+    var echoOnChance = .6, echoOn = true, echoStretchBars = 0;
     var leadGlitchShare = .05, leadFilterChance = .1, bassGlitchShare = .07, bassFilterChance = .08, filterUntil = { lead: 0, bass: 0 };   // the share of notes that get a glitch; the chance per bar of a filter move
     // Where each voice's random filters may land (Hz): a highpass thins it, a lowpass muffles it, a band is both; the bass stays in the low end.
     var leadRanges = { high: [450, 2250], low: [380, 1880], centre: [700, 2200], resonance: [1.8, 3.5] }, bassRanges = { high: [50, 200], low: [140, 600], centre: [90, 300], resonance: [1.2, 2.5] };
@@ -2380,15 +2381,13 @@
       hiss.connect(hissTone); hissTone.connect(hissLevel); hissLevel.connect(output);
     }
     // An effects rack for a voice (the lead's sits between its bus and the presence lift, the bass's between its bus and the mix): a highpass and a lowpass (open until the scheduler moves them at
-    // random), parallel glitch paths that stay silent until a note triggers them (a bit-crusher, a ring modulator, a stuttering repeat),
+    // random), parallel glitch paths that stay silent until a note triggers them (a ring modulator, a stuttering repeat),
     // then a gate (for stutter chops) and a pan.
     function buildFxRack(input, output) {
-      var fx = {}, mix = ac.createGain(), steps = new Float32Array(2049);
+      var fx = {}, mix = ac.createGain();
       fx.hp = ac.createBiquadFilter(); fx.hp.type = 'highpass'; fx.hp.frequency.value = 20; fx.hp.Q.value = .7;
       fx.lp = ac.createBiquadFilter(); fx.lp.type = 'lowpass'; fx.lp.frequency.value = 18000; fx.lp.Q.value = .7;
       fx.dry = ac.createGain();
-      for (var i = 0; i < 2049; i++) steps[i] = Math.round((i / 1024 - 1) * 12) / 12;   // about 3.6 bits: harsh
-      var crusher = ac.createWaveShaper(); crusher.curve = steps; fx.crush = ac.createGain(); fx.crush.gain.value = 0;
       var ringer = ac.createGain(); ringer.gain.value = 0;   // a ring modulator: the signal times a sine, which drives this gain
       fx.ringOsc = ac.createOscillator(); fx.ringOsc.frequency.value = 200; fx.ringOsc.connect(ringer.gain); fx.ringOsc.start();
       fx.ring = ac.createGain(); fx.ring.gain.value = 0;
@@ -2398,7 +2397,6 @@
       fx.gate = ac.createGain(); fx.pan = ac.createStereoPanner();
       input.connect(fx.hp); fx.hp.connect(fx.lp);
       fx.lp.connect(fx.dry); fx.dry.connect(mix);
-      fx.lp.connect(crusher); crusher.connect(fx.crush); fx.crush.connect(mix);
       fx.lp.connect(ringer); ringer.connect(fx.ring); fx.ring.connect(mix);
       fx.lp.connect(fx.repeatSend); fx.repeatSend.connect(fx.repeatDelay); fx.repeatDelay.connect(repeatTone);
       repeatTone.connect(fx.repeatBack); fx.repeatBack.connect(fx.repeatDelay); repeatTone.connect(mix);
@@ -2501,7 +2499,11 @@
       echoDelayB.connect(echoBack); echoBack.connect(echoDelay);
       mix.connect(glue);
       if (tapeOn) addTape(glue, analyser); else glue.connect(analyser);
-      analyser.connect(output); output.connect(ac.destination);
+      // A safety limiter last of all: the glue compressor is gentle (2.5:1), so stacked loud moments (a driven lead, a bass chord, a glitch burst and the reverb
+      // tails all at once) could still pass full scale and clip the speakers. This catches anything above about -2 dB, with a fast attack.
+      var limiter = ac.createDynamicsCompressor();
+      limiter.threshold.value = -2; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = .001; limiter.release.value = .12;
+      analyser.connect(output); output.connect(limiter); limiter.connect(ac.destination);
     }
     // Rounded chant-like vowels: audible pitch, soft formants, restrained breath.
     function chant(freq, when, strength, gate, fromFreq, open) {
@@ -2776,8 +2778,10 @@
     function pickMelodyVoices() {
       var textures = ['sitar', 'bansuri', 'glass', 'santoor'], used = melodyVoices ? [melodyVoices.call, melodyVoices.reply] : [];
       var call = nextTexture(null, textures.filter(function (voice) { return used.indexOf(voice) < 0; }), Math.random);   // unlike the last call and reply
-      melodyVoices = { call: call, reply: nextTexture(call, textures, Math.random) };
-      voiceConversations = Math.round((4 + Math.floor(Math.random() * 3)) * pace);
+      // The reply keeps the call's voice most of the time (a different one only one conversation in five), so the timbre does not flip bar to bar;
+      // a pair of voices then stays for a long stretch (eight to thirteen conversations).
+      melodyVoices = { call: call, reply: Math.random() < .2 ? nextTexture(call, textures, Math.random) : call };
+      voiceConversations = Math.round((8 + Math.floor(Math.random() * 6)) * pace);
     }
     // The wild effects may overlap, but not too much. The lead's filter moves and glitches, the bass's, and the chord echo's dives and swells each claim
     // the stretch of time they will take. A claim that overlaps another voice is refused if it would push any of the voices involved past 40% of its
@@ -2829,11 +2833,11 @@
       }
       filterUntil[side] = at + hold + 1.5; quiet = 4;
     }
-    // Glitches on a voice. A note picked at random (about one in twenty for the lead, one in fourteen for the bass) gets one of: a stutter (the lead is chopped on and off), a crush (a
-    // burst of harsh bit-reduction), a ring (a burst of metallic ring modulation), a repeat (the note's attack is caught and machine-gunned), a
+    // Glitches on a voice. A note picked at random (about one in twenty for the lead, one in fourteen for the bass) gets one of: a stutter (the lead is chopped on and off), a ring (a
+    // burst of metallic ring modulation), a repeat (the note's attack is caught and machine-gunned), a
     // throw (the note is panned hard to one side) or a dive (the note bends down at its end, handled where the note is played).
     function chooseGlitch(withThrow) {   // a throw (panned hard to one side) is for the lead; a bass stays in the middle
-      var kinds = [['stutter', 3], ['crush', 2.5], ['ring', 2], ['repeat', 2.5], ['dive', 2]];
+      var kinds = [['stutter', 3], ['ring', 2], ['repeat', 2.5], ['dive', 2]];
       if (withThrow) kinds.push(['throw', 1.5]);
       return weightedChoice(kinds, function (entry) { return entry[1]; }, Math.random)[0];
     }
@@ -2843,9 +2847,6 @@
         var count = 6 + Math.floor(Math.random() * 8), width = .035 + Math.random() * .05;
         for (var i = 0; i < count; i++) fx.gate.gain.setTargetAtTime(i % 2 ? 1 : .03, t + .04 + i * width, .004);
         fx.gate.gain.setTargetAtTime(1, t + .04 + count * width, .004);
-      } else if (kind === 'crush') {
-        fx.crush.gain.setTargetAtTime(.75, t, .006); fx.dry.gain.setTargetAtTime(.3, t, .006);
-        fx.crush.gain.setTargetAtTime(0, t + length, .05); fx.dry.gain.setTargetAtTime(1, t + length, .05);
       } else if (kind === 'ring') {
         fx.ringOsc.frequency.setValueAtTime(70 + Math.random() * 430, t);
         fx.ring.gain.setTargetAtTime(.8, t, .006); fx.dry.gain.setTargetAtTime(.45, t, .006);
@@ -2918,13 +2919,14 @@
         // slap, an eighth, a triplet, a quarter, a dotted quarter, a half), and glides there quickly, the way a tape echo does when its time is
         // turned, so the repeats dive and bend. More rarely (about one bar in eighty) it swells: for a couple of bars the feedback rises, the repeats pile up and ring on.
         if (quiet > 0) quiet--;
+        if (--echoStretchBars <= 0) { echoOn = Math.random() < echoOnChance; echoStretchBars = 2 + Math.floor(Math.random() * 4); }
         if (chordPatternBars > 0) chordPatternBars--;
         if (echoDelay) {
-          var echoBar = raagSession.b * raagSession.beat;
-          if (quiet <= 0 && Math.random() < .03 && claimWild('chords', next, next + 2.2)) { quiet = 4; echoDivision = nextTexture(echoDivision, [.75, .5, 2 / 3, 1, 1.5, .25, 2], Math.random); }
+          var echoBar = raagSession.b * raagSession.beat, chordFxOpen = quiet <= 0;   // the chord effects may fire together: one starting does not hold back the other
+          if (chordFxOpen && Math.random() < .03 && claimWild('chords', next, next + 2.2)) { quiet = 4; echoDivision = nextTexture(echoDivision, [.75, .5, 2 / 3, 1, 1.5, .25, 2], Math.random); }
           echoDelay.delayTime.setTargetAtTime(raagSession.quarterBeat * echoDivision, ac.currentTime, .35);
           echoDelayB.delayTime.setTargetAtTime(raagSession.quarterBeat * echoDivision, ac.currentTime, .35);
-          if (echoSurge > 0) echoSurge--; else if (quiet <= 0 && Math.random() < .012 && claimWild('chords', next, next + 2 * echoBar + 1.5)) { quiet = 4; echoSurge = 2; }
+          if (echoSurge > 0) echoSurge--; else if (chordFxOpen && echoOn && Math.random() < .012 && claimWild('chords', next, next + 2 * echoBar + 1.5)) { quiet = 4; echoSurge = 2; }
           echoBack.gain.setTargetAtTime(echoSurge > 0 ? .72 : .5, ac.currentTime, .25);
         }
         if (leadDelay) leadDelay.delayTime.setTargetAtTime(raagSession.quarterBeat * .75, ac.currentTime, .3);
@@ -3139,7 +3141,7 @@
           playHarmony(plan.notes, harmonyWorld.tonic, next + attack.offset, attack.gate + overlap, attack.strength, timbre, attack.articulation, attack.strum, attack.strumDown, attack);
           // The echo catches the attack of some hits (about four in ten): its send opens at the hit and closes shortly after (a long chord is caught
           // for its first half second, not smeared), and the repeats ring on by themselves. The other hits stay clean.
-          if (echoSend && forced.tape !== 'off' && Math.random() < echoShare) {
+          if (echoSend && echoOn && forced.tape !== 'off' && Math.random() < echoShare) {
             echoSend.gain.setValueAtTime(1, next + attack.offset); echoSend.gain.setValueAtTime(0, next + attack.offset + Math.min(attack.gate, .5) + .08);
           }
           // A quiet octave shimmer on top of the chord.
@@ -3421,7 +3423,7 @@
       harmony = null; harmonyBarsLeft = 0; harmonyWorld = raagSession; bassPedal = raagSession.root;
       phraseBar = 0; conversation = null; rhythmRiff = null; riffBarsLeft = 3; bassUntil = 0; previousBarProfile = null;
       changeIn = Math.round((12 + Math.floor(Math.random() * 7)) * pace); pendingMeter = false; melodyMotif = null; recentChanges = [];
-      wildWindows = []; wildTime = { lead: [0, 0, 0], chords: [0, 0, 0], bass: [0, 0, 0] }; filterUntil = { lead: 0, bass: 0 };   // these are times on the old audio clock, which the new one does not share
+      echoOn = true; echoStretchBars = 0; wildWindows = []; wildTime = { lead: [0, 0, 0], chords: [0, 0, 0], bass: [0, 0, 0] }; filterUntil = { lead: 0, bass: 0 };   // these are times on the old audio clock, which the new one does not share
       voiceConversations = 0;   // the next conversation picks new voices, avoiding the current ones (melodyVoices is kept for that)
       melodyMood = 'normal'; melodyMoodBars = 16 + Math.floor(Math.random() * 9); previousMelodyBreak = false;
       drumStyleBars = 0; percussionTextureBars = 0; rhythmTextureBars = 0; bandLean = 0; leadDegree = null; quiet = 0; chordPatternBars = 0; heldChordPattern = null;
