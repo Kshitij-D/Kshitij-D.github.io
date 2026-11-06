@@ -1670,9 +1670,9 @@
   // The lead has moods. Mostly it plays; now and then it drops out for a long stretch so the drums, bass and harmony can be heard on
   // their own, and sometimes it goes berserk over them. Each mood lasts a good while.
   function nextMelodyMood(previous, random) {
-    var table = previous === 'normal' ? [['off', 3], ['berserk', 2.2], ['normal', .6]] : [['normal', 4], [previous === 'off' ? 'berserk' : 'off', 1]];
+    var table = previous === 'normal' ? [['off', 6], ['berserk', 2.2], ['normal', .4]] : [['normal', 4], [previous === 'off' ? 'berserk' : 'off', 1]];
     var mood = weightedChoice(table, function (entry) { return entry[1]; }, random)[0];
-    return { mood: mood, bars: mood === 'normal' ? 18 + Math.floor(random() * 15) : mood === 'off' ? 10 + Math.floor(random() * 9) : 10 + Math.floor(random() * 7) };
+    return { mood: mood, bars: mood === 'normal' ? 6 + Math.floor(random() * 15) : mood === 'off' ? 2 + Math.floor(random() * 7) : 10 + Math.floor(random() * 7) };
   }
   // Berserk: the lead's own habits pushed to their limits (leaping, dotted, ornamented, barely pausing, no motif to come back to).
   // Everything stays in the scale and the other parts are untouched.
@@ -2333,7 +2333,7 @@
     var harmonyWorld = raagSession, bassPedal = raagSession.root;
     var changeIn = Math.round((12 + Math.floor(Math.random() * 7)) * pace), pendingMeter = false, melodyMotif = null, recentChanges = [], melodyVoices = null, voiceConversations = 0;
     var chordVoices = { pad: 'organ', answer: 'epiano', stab: 'swarmandal', chop: 'clav' }, rhythmTextureBars = 0, riffBarsLeft = 3;
-    var melodyMood = 'normal', melodyMoodBars = 16 + Math.floor(Math.random() * 9), previousMelodyBreak = false;
+    var melodyMood = 'normal', melodyMoodBars = 10 + Math.floor(Math.random() * 7), previousMelodyBreak = false;
     var drumStyle = 'groove', drumStyleBars = 0, bandLean = 0, leadDegree = null;
     // One thing at a time: the drums, the chord gesture and the effects each change on their own schedule, but after any of them changes the others
     // wait `quiet` bars (four) before they may; only the melody is free to move meanwhile. A chord gesture (its rhythm and answer) holds for a long stretch.
@@ -3430,7 +3430,7 @@
       changeIn = Math.round((12 + Math.floor(Math.random() * 7)) * pace); pendingMeter = false; melodyMotif = null; recentChanges = [];
       echoOn = true; echoStretchBars = 0; wildWindows = []; wildTime = { lead: [0, 0, 0], chords: [0, 0, 0], bass: [0, 0, 0] }; filterUntil = { lead: 0, bass: 0 };   // these are times on the old audio clock, which the new one does not share
       voiceConversations = 0;   // the next conversation picks new voices, avoiding the current ones (melodyVoices is kept for that)
-      melodyMood = 'normal'; melodyMoodBars = 16 + Math.floor(Math.random() * 9); previousMelodyBreak = false;
+      melodyMood = 'normal'; melodyMoodBars = 10 + Math.floor(Math.random() * 7); previousMelodyBreak = false;
       drumStyleBars = 0; percussionTextureBars = 0; rhythmTextureBars = 0; bandLean = 0; leadDegree = null; quiet = 0; chordPatternBars = 0; heldChordPattern = null;
       bassWaves = {};
     }
